@@ -1,21 +1,9 @@
 import { Route, Routes } from "react-router";
 import AppLayout from "./components/layout/AppLayout";
-
-function Home() {
-  return <h1>Home</h1>;
-}
-
-function Discover() {
-  return <h1>Discover</h1>;
-}
-
-function Search() {
-  return <h1>Search</h1>;
-}
-
-function Favorites() {
-  return <h1>Favorites</h1>;
-}
+import Discover from "./pages/Discover";
+import Favorites from "./pages/Favorites";
+import Home from "./pages/Home";
+import Search from "./pages/Search";
 
 export default function App() {
   return (
