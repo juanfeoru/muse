@@ -1,13 +1,12 @@
-import { useState } from "react";
 import type { FavoriteState } from "../types/favorite";
 import type { Album, Artist, Track } from "../types";
+import { useLocalStorage } from "./useLocalStorage";
 
 export function useFavorites() {
-  const [favorites, setFavorites] = useState<FavoriteState>({
-    artists: [],
-    albums: [],
-    tracks: [],
-  });
+  const [favorites, setFavorites] = useLocalStorage<FavoriteState>(
+    "muse-favorites",
+    { artists: [], albums: [], tracks: [] },
+  );
 
   const toggleFavorite = (
     item: Artist | Album | Track,
