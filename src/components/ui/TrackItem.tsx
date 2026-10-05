@@ -1,15 +1,18 @@
+import { Heart } from "lucide-react";
+import type { Track } from "../../types";
+
 interface TrackItemProps {
   position: number;
-  title: string;
-  artist: string;
-  duration: string;
+  track: Track;
+  isFavorite: boolean;
+  onFavorite: () => void;
 }
 
 export default function TrackItem({
   position,
-  title,
-  artist,
-  duration,
+  track,
+  isFavorite,
+  onFavorite,
 }: TrackItemProps) {
   return (
     <div className="group flex items-center gap-4 rounded-xl px-3 py-3 transition-colors hover:bg-surface-hover">
@@ -18,11 +21,30 @@ export default function TrackItem({
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium text-primary-text">{title}</p>
-        <p className="truncate text-sm text-secondary-text">{artist}</p>
+        <p className="truncate font-medium text-primary-text">{track.title}</p>
+
+        <p className="truncate text-sm text-secondary-text">{track.artist}</p>
       </div>
 
-      <span className="text-sm text-muted-text">{duration}</span>
+      <button
+        type="button"
+        onClick={onFavorite}
+        aria-label={
+          isFavorite
+            ? `Remove ${track.title} from favorites`
+            : `Add ${track.title} to favorites`
+        }
+        className="flex size-8 shrink-0 items-center justify-center rounded-full text-secondary-text transition-all hover:scale-105 hover:bg-surface-hover hover:text-primary-text cursor-pointer"
+      >
+        <Heart
+          size={17}
+          className={isFavorite ? "fill-accent text-accent" : ""}
+        />
+      </button>
+
+      <span className="w-10 text-right text-sm text-muted-text">
+        {track.duration}
+      </span>
     </div>
   );
 }

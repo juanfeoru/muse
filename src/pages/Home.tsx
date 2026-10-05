@@ -3,50 +3,61 @@ import ArtistCard from "../components/ui/ArtistCard";
 import SectionHeader from "../components/ui/SectionHeader";
 import AlbumCard from "../components/ui/AlbumCard";
 import TrackItem from "../components/ui/TrackItem";
+import type { Album, Artist, Track } from "../types";
+import { useOutletContext } from "react-router";
+import type { FavoritesContext } from "../types/favorite";
 
-const artists = [
+const artists: Artist[] = [
   {
+    id: "1",
     name: "Ariana Grande",
     genre: "Pop",
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "2",
     name: "The Weeknd",
     genre: "R&B",
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "3",
     name: "Dua Lipa",
     genre: "Pop",
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "4",
     name: "Frank Ocean",
     genre: "R&B",
     image: "URL_DE_IMAGEN",
   },
 ];
 
-const albums = [
+const albums: Album[] = [
   {
+    id: "1",
     title: "Eternal Sunshine",
     artist: "Ariana Grande",
     year: 2024,
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "2",
     title: "Hurry Up Tomorrow",
     artist: "The Weeknd",
     year: 2025,
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "3",
     title: "Future Nostalgia",
     artist: "Dua Lipa",
     year: 2020,
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "4",
     title: "Blonde",
     artist: "Frank Ocean",
     year: 2016,
@@ -54,28 +65,33 @@ const albums = [
   },
 ];
 
-const tracks = [
+const tracks: Track[] = [
   {
+    id: "1",
     title: "we can't be friends",
     artist: "Ariana Grande",
     duration: "3:48",
   },
   {
+    id: "2",
     title: "Blinding Lights",
     artist: "The Weeknd",
     duration: "3:20",
   },
   {
+    id: "3",
     title: "Houdini",
     artist: "Dua Lipa",
     duration: "3:05",
   },
   {
+    id: "4",
     title: "Pink + White",
     artist: "Frank Ocean",
     duration: "3:04",
   },
   {
+    id: "5",
     title: "Supercut",
     artist: "Lorde",
     duration: "4:11",
@@ -83,6 +99,8 @@ const tracks = [
 ];
 
 export default function Home() {
+  const { favorites, toggleFavorite } = useOutletContext<FavoritesContext>();
+
   return (
     <section className="px-5 py-6 md:px-8 md:py-8">
       <div className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6 md:p-10">
@@ -117,10 +135,12 @@ export default function Home() {
         <div className="flex gap-6 overflow-x-auto pb-2">
           {artists.map((artist) => (
             <ArtistCard
-              key={artist.name}
-              name={artist.name}
-              genre={artist.genre}
-              image={artist.image}
+              key={artist.id}
+              artist={artist}
+              isFavorite={favorites.artists.some(
+                (favorite) => favorite.id === artist.id,
+              )}
+              onFavorite={() => toggleFavorite(artist, "artists")}
             />
           ))}
         </div>
@@ -132,11 +152,12 @@ export default function Home() {
         <div className="flex gap-5 overflow-x-auto pb-2">
           {albums.map((album) => (
             <AlbumCard
-              key={album.title}
-              title={album.title}
-              artist={album.artist}
-              year={album.year}
-              image={album.image}
+              key={album.id}
+              album={album}
+              isFavorite={favorites.albums.some(
+                (favorite) => favorite.id === album.id,
+              )}
+              onFavorite={() => toggleFavorite(album, "albums")}
             />
           ))}
         </div>
@@ -148,11 +169,13 @@ export default function Home() {
         <div className="divide-y divide-border rounded-xl border border-border">
           {tracks.map((track, index) => (
             <TrackItem
-              key={track.title}
+              key={track.id}
               position={index + 1}
-              title={track.title}
-              artist={track.artist}
-              duration={track.duration}
+              track={track}
+              isFavorite={favorites.tracks.some(
+                (favorite) => favorite.id === track.id,
+              )}
+              onFavorite={() => toggleFavorite(track, "tracks")}
             />
           ))}
         </div>

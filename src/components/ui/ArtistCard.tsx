@@ -1,24 +1,42 @@
+import { Heart } from "lucide-react";
+import type { Artist } from "../../types";
+
 interface ArtistCardProps {
-  name: string;
-  image: string;
-  genre: string;
+  artist: Artist;
+  isFavorite: boolean;
+  onFavorite: () => void;
 }
 
-export default function ArtistCard({ name, image, genre }: ArtistCardProps) {
+export default function ArtistCard({
+  artist,
+  isFavorite,
+  onFavorite,
+}: ArtistCardProps) {
   return (
     <article className="group min-w-32">
-      <div className="aspect-square overflow-hidden rounded-full bg-surface-hover">
+      <div className="relative aspect-square overflow-hidden rounded-full bg-surface-hover">
         <img
-          src={image}
-          alt={name}
+          src={artist.image}
+          alt={artist.name}
           className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
-      </div>
 
-      <div className="mt-3">
-        <h3 className="truncate font-medium text-primary-text">{name}</h3>
-        <p className="mt-0.5 truncate text-sm text-secondary-text">{genre}</p>
-      </div>
+        <button
+          type="button"
+          onClick={onFavorite}
+          aria-label={
+            isFavorite
+              ? `Remove ${artist.name} from favorites`
+              : `Add ${artist.name} to favorites`
+          }
+          className="absolute right-4 top-4 flex size-8 items-center justify-center rounded-full bg-black/60 text-primary-text backdrop-blur-sm transition-all hover:scale-105 hover:bg-black/80 cursor-pointer"
+        >
+          <Heart
+            size={17}
+            className={isFavorite ? "fill-accent text-accent" : ""}
+          />
+        </button>
+      </div>{" "}
     </article>
   );
 }

@@ -1,31 +1,50 @@
+import { Heart } from "lucide-react";
+import type { Album } from "../../types";
+
 interface AlbumCardProps {
-  title: string;
-  artist: string;
-  image: string;
-  year: number;
+  album: Album;
+  isFavorite: boolean;
+  onFavorite: () => void;
 }
 
 export default function AlbumCard({
-  title,
-  artist,
-  image,
-  year,
+  album,
+  isFavorite,
+  onFavorite,
 }: AlbumCardProps) {
   return (
     <article className="group min-w-40">
-      <div className="aspect-square overflow-hidden rounded-xl bg-surface-hover">
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-surface-hover">
         <img
-          src={image}
-          alt={`${title} by ${artist}`}
+          src={album.image}
+          alt={`${album.title} by ${album.artist}`}
           className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
+
+        <button
+          type="button"
+          onClick={onFavorite}
+          aria-label={
+            isFavorite
+              ? `Remove ${album.title} from favorites`
+              : `Add ${album.title} to favorites`
+          }
+          className="absolute right-4 top-4 flex size-8 items-center justify-center rounded-full bg-black/60 text-primary-text backdrop-blur-sm transition-all hover:scale-105 hover:bg-black/80 cursor-pointer"
+        >
+          <Heart
+            size={17}
+            className={isFavorite ? "fill-accent text-accent" : ""}
+          />
+        </button>
       </div>
 
       <div className="mt-3">
-        <h3 className="truncate font-medium text-primary-text">{title}</h3>
+        <h3 className="truncate font-medium text-primary-text">
+          {album.title}
+        </h3>
 
         <p className="mt-0.5 truncate text-sm text-secondary-text">
-          {artist} · {year}
+          {album.artist} · {album.year}
         </p>
       </div>
     </article>
