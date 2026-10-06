@@ -15,11 +15,17 @@ export default function AlbumCard({
   return (
     <article className="group min-w-40">
       <div className="relative aspect-square overflow-hidden rounded-xl bg-surface-hover">
-        <img
-          src={album.image}
-          alt={`${album.title} by ${album.artist}`}
-          className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
-        />
+        {album.image ? (
+          <img
+            src={album.image}
+            alt={`${album.title} by ${album.artist}`}
+            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex size-full items-center justify-center text-muted-text">
+            <span className="text-3xl">♪</span>
+          </div>
+        )}
 
         <button
           type="button"
@@ -44,7 +50,8 @@ export default function AlbumCard({
         </h3>
 
         <p className="mt-0.5 truncate text-sm text-secondary-text">
-          {album.artist} · {album.year}
+          {album.artist}
+          {album.year && <span> · {album.year}</span>}
         </p>
       </div>
     </article>

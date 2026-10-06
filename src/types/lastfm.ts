@@ -19,3 +19,20 @@ export interface LastFmArtistSearchResponse {
     };
   };
 }
+
+export interface LastFmAlbum {
+  artist: string;
+  image: LastFmImage[];
+  mbid: string;
+  name: string;
+  streamable: string;
+  url: string;
+}
+
+export interface LastFmAlbumSearchResponse {
+  results: {
+    albummatches: {
+      album: LastFmAlbum[];
+    };
+  };
+}

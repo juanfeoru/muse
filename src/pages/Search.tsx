@@ -4,43 +4,12 @@ import ArtistCard from "../components/ui/ArtistCard";
 import AlbumCard from "../components/ui/AlbumCard";
 import TrackItem from "../components/ui/TrackItem";
 import EmptyState from "../components/ui/EmptyState";
-import { searchArtists } from "../services/lastfm";
-import { mapLastFmArtist } from "../services/mappers";
+import { searchAlbums, searchArtists } from "../services/lastfm";
+import { mapLastFmAlbum, mapLastFmArtist } from "../services/mappers";
 import type { Album, Artist, FavoritesContext, Track } from "../types";
 import { useOutletContext } from "react-router";
 import LoadingState from "../components/ui/LoadingState";
 import ErrorState from "../components/ui/ErrorState";
-
-const albums: Album[] = [
-  {
-    id: "1",
-    title: "Eternal Sunshine",
-    artist: "Ariana Grande",
-    year: 2024,
-    image: "URL_DE_IMAGEN",
-  },
-  {
-    id: "2",
-    title: "Hurry Up Tomorrow",
-    artist: "The Weeknd",
-    year: 2025,
-    image: "URL_DE_IMAGEN",
-  },
-  {
-    id: "3",
-    title: "Future Nostalgia",
-    artist: "Dua Lipa",
-    year: 2020,
-    image: "URL_DE_IMAGEN",
-  },
-  {
-    id: "4",
-    title: "Blonde",
-    artist: "Frank Ocean",
-    year: 2016,
-    image: "URL_DE_IMAGEN",
-  },
-];
 
 const tracks: Track[] = [
   {
@@ -80,8 +49,15 @@ export default function Search() {
 
   const [query, setQuery] = useState("");
   const [artists, setArtists] = useState<Artist[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [albums, setAlbums] = useState<Album[]>([]);
+  const [isLoading, setIsLoading] = useState({
+    artists: false,
+    albums: false,
+  });
+  const [error, setError] = useState({
+    artists: "",
+    albums: "",
+  });
 
   const filteredArtists = artists.filter((artist) =>
     artist.name.toLowerCase().includes(query.toLowerCase().trim()),
@@ -105,8 +81,15 @@ export default function Search() {
     }
 
     async function fetchArtists() {
-      setIsLoading(true);
-      setError(null);
+      setIsLoading((prev) => ({
+        ...prev,
+        artists: true,
+      }));
+
+      setError((prev) => ({
+        ...prev,
+        artists: "",
+      }));
 
       try {
         const artists = await searchArtists(query);
@@ -117,14 +100,53 @@ export default function Search() {
 
         setArtists(mappedArtists);
       } catch {
-        setError("Failed to search artists");
+        setError((prev) => ({
+          ...prev,
+          artists: "Failed to search artists",
+        }));
       } finally {
-        setIsLoading(false);
+        setIsLoading((prev) => ({
+          ...prev,
+          artists: false,
+        }));
+      }
+    }
+
+    async function fetchAlbums() {
+      setIsLoading((prev) => ({
+        ...prev,
+        albums: true,
+      }));
+
+      setError((prev) => ({
+        ...prev,
+        albums: "",
+      }));
+
+      try {
+        const albums = await searchAlbums(query);
+
+        const mappedAlbums = albums.map((album) => {
+          return mapLastFmAlbum(album);
+        });
+
+        setAlbums(mappedAlbums);
+      } catch {
+        setError((prev) => ({
+          ...prev,
+          albums: "Failed to search albums",
+        }));
+      } finally {
+        setIsLoading((prev) => ({
+          ...prev,
+          albums: false,
+        }));
       }
     }
 
     const timeoutId = setTimeout(() => {
       fetchArtists();
+      fetchAlbums();
     }, 500);
 
     return () => clearTimeout(timeoutId);
@@ -172,12 +194,12 @@ export default function Search() {
               <h2 className="text-xl font-semibold text-primary-text">
                 Artists
               </h2>
-              {isLoading ? (
+              {isLoading.artists ? (
                 <LoadingState message="Searching artists..." />
-              ) : error ? (
-                <ErrorState message={error} />
+              ) : error.artists ? (
+                <ErrorState message={error.artists} />
               ) : filteredArtists.length > 0 ? (
-                <div className="mt-5 flex gap-6 overflow-x-auto pb-2">
+                <div className="scrollbar-dark mt-5 flex gap-6 overflow-x-auto pb-2">
                   {filteredArtists.map((artist) => (
                     <ArtistCard
                       key={artist.id}
@@ -204,8 +226,12 @@ export default function Search() {
                 Albums
               </h2>
 
-              {filteredAlbums.length > 0 ? (
-                <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {isLoading.albums ? (
+                <LoadingState message="Searching albums..." />
+              ) : error.albums ? (
+                <ErrorState message={error.albums} />
+              ) : filteredAlbums.length > 0 ? (
+                <div className="scrollbar-dark mt-5 flex gap-5 overflow-x-auto pb-2">
                   {filteredAlbums.map((album) => (
                     <AlbumCard
                       key={album.id}

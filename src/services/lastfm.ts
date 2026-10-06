@@ -1,4 +1,7 @@
-import type { LastFmArtistSearchResponse } from "../types/lastfm";
+import type {
+  LastFmAlbumSearchResponse,
+  LastFmArtistSearchResponse,
+} from "../types/lastfm";
 
 const BASE_URL = "https://ws.audioscrobbler.com/2.0";
 const API_KEY = import.meta.env.VITE_LASTFM_API_KEY;
@@ -20,4 +23,23 @@ export async function searchArtists(query: string) {
   const data: LastFmArtistSearchResponse = await response.json();
 
   return data.results.artistmatches.artist;
+}
+
+export async function searchAlbums(query: string) {
+  const url = new URL(BASE_URL);
+
+  url.searchParams.set("method", "album.search");
+  url.searchParams.set("album", query);
+  url.searchParams.set("api_key", API_KEY);
+  url.searchParams.set("format", "json");
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch albums");
+  }
+
+  const data: LastFmAlbumSearchResponse = await response.json();
+
+  return data.results.albummatches.album;
 }

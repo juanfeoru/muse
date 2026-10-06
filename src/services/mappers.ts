@@ -1,5 +1,5 @@
-import type { Artist } from "../types";
-import type { LastFmArtist } from "../types/lastfm";
+import type { Album, Artist } from "../types";
+import type { LastFmAlbum, LastFmArtist } from "../types/lastfm";
 
 export function mapLastFmArtist(artist: LastFmArtist): Artist {
   const image =
@@ -9,6 +9,19 @@ export function mapLastFmArtist(artist: LastFmArtist): Artist {
   return {
     id: artist.mbid || artist.name,
     name: artist.name,
+    image,
+  };
+}
+
+export function mapLastFmAlbum(album: LastFmAlbum): Album {
+  const image =
+    album.image.find((image) => image.size === "extralarge")?.["#text"] ||
+    album.image.find((image) => image["#text"] !== "")?.["#text"];
+
+  return {
+    id: album.mbid || `${album.artist}-${album.name}`,
+    title: album.name,
+    artist: album.artist,
     image,
   };
 }
