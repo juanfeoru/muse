@@ -8,6 +8,8 @@ import { searchArtists } from "../services/lastfm";
 import { mapLastFmArtist } from "../services/mappers";
 import type { Album, Artist, FavoritesContext, Track } from "../types";
 import { useOutletContext } from "react-router";
+import LoadingState from "../components/ui/LoadingState";
+import ErrorState from "../components/ui/ErrorState";
 
 const albums: Album[] = [
   {
@@ -78,6 +80,8 @@ export default function Search() {
 
   const [query, setQuery] = useState("");
   const [artists, setArtists] = useState<Artist[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const filteredArtists = artists.filter((artist) =>
     artist.name.toLowerCase().includes(query.toLowerCase().trim()),
@@ -101,13 +105,22 @@ export default function Search() {
     }
 
     async function fetchArtists() {
-      const artists = await searchArtists(query);
+      setIsLoading(true);
+      setError(null);
 
-      const mappedArtists = artists.map((artist) => {
-        return mapLastFmArtist(artist);
-      });
+      try {
+        const artists = await searchArtists(query);
 
-      setArtists(mappedArtists);
+        const mappedArtists = artists.map((artist) => {
+          return mapLastFmArtist(artist);
+        });
+
+        setArtists(mappedArtists);
+      } catch {
+        setError("Failed to search artists");
+      } finally {
+        setIsLoading(false);
+      }
     }
 
     const timeoutId = setTimeout(() => {
@@ -159,8 +172,11 @@ export default function Search() {
               <h2 className="text-xl font-semibold text-primary-text">
                 Artists
               </h2>
-
-              {filteredArtists.length > 0 ? (
+              {isLoading ? (
+                <LoadingState message="Searching artists..." />
+              ) : error ? (
+                <ErrorState message={error} />
+              ) : filteredArtists.length > 0 ? (
                 <div className="mt-5 flex gap-6 overflow-x-auto pb-2">
                   {filteredArtists.map((artist) => (
                     <ArtistCard
