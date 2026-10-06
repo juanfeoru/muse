@@ -6,6 +6,7 @@ import TrackItem from "../components/ui/TrackItem";
 import type { Album, Artist, Track } from "../types";
 import { useOutletContext } from "react-router";
 import type { FavoritesContext } from "../types/favorite";
+import { searchArtists } from "../services/lastfm";
 
 const artists: Artist[] = [
   {
@@ -100,6 +101,10 @@ const tracks: Track[] = [
 
 export default function Home() {
   const { favorites, toggleFavorite } = useOutletContext<FavoritesContext>();
+
+  searchArtists("cher").then((data) => {
+    console.log(data);
+  });
 
   return (
     <section className="px-5 py-6 md:px-8 md:py-8">

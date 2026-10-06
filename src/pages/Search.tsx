@@ -1,53 +1,38 @@
 import { Search as SearchIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ArtistCard from "../components/ui/ArtistCard";
 import AlbumCard from "../components/ui/AlbumCard";
 import TrackItem from "../components/ui/TrackItem";
 import EmptyState from "../components/ui/EmptyState";
+import { searchArtists } from "../services/lastfm";
+import { mapLastFmArtist } from "../services/mappers";
+import type { Album, Artist, FavoritesContext, Track } from "../types";
+import { useOutletContext } from "react-router";
 
-const artists = [
+const albums: Album[] = [
   {
-    name: "Ariana Grande",
-    genre: "Pop",
-    image: "URL_DE_IMAGEN",
-  },
-  {
-    name: "The Weeknd",
-    genre: "R&B",
-    image: "URL_DE_IMAGEN",
-  },
-  {
-    name: "Dua Lipa",
-    genre: "Pop",
-    image: "URL_DE_IMAGEN",
-  },
-  {
-    name: "Frank Ocean",
-    genre: "R&B",
-    image: "URL_DE_IMAGEN",
-  },
-];
-
-const albums = [
-  {
+    id: "1",
     title: "Eternal Sunshine",
     artist: "Ariana Grande",
     year: 2024,
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "2",
     title: "Hurry Up Tomorrow",
     artist: "The Weeknd",
     year: 2025,
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "3",
     title: "Future Nostalgia",
     artist: "Dua Lipa",
     year: 2020,
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "4",
     title: "Blonde",
     artist: "Frank Ocean",
     year: 2016,
@@ -55,31 +40,44 @@ const albums = [
   },
 ];
 
-const tracks = [
+const tracks: Track[] = [
   {
+    id: "1",
     title: "we can't be friends",
     artist: "Ariana Grande",
     duration: "3:48",
   },
   {
+    id: "2",
     title: "Blinding Lights",
     artist: "The Weeknd",
     duration: "3:20",
   },
   {
+    id: "3",
     title: "Houdini",
     artist: "Dua Lipa",
     duration: "3:05",
   },
   {
+    id: "4",
     title: "Pink + White",
     artist: "Frank Ocean",
     duration: "3:04",
   },
+  {
+    id: "5",
+    title: "Supercut",
+    artist: "Lorde",
+    duration: "4:11",
+  },
 ];
 
 export default function Search() {
+  const { favorites, toggleFavorite } = useOutletContext<FavoritesContext>();
+
   const [query, setQuery] = useState("");
+  const [artists, setArtists] = useState<Artist[]>([]);
 
   const filteredArtists = artists.filter((artist) =>
     artist.name.toLowerCase().includes(query.toLowerCase().trim()),
@@ -96,6 +94,28 @@ export default function Search() {
       track.title.toLowerCase().includes(query.toLowerCase().trim()) ||
       track.artist.toLowerCase().includes(query.toLowerCase().trim()),
   );
+
+  useEffect(() => {
+    if (!query.trim()) {
+      return;
+    }
+
+    async function fetchArtists() {
+      const artists = await searchArtists(query);
+
+      const mappedArtists = artists.map((artist) => {
+        return mapLastFmArtist(artist);
+      });
+
+      setArtists(mappedArtists);
+    }
+
+    const timeoutId = setTimeout(() => {
+      fetchArtists();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [query]);
 
   return (
     <section className="px-5 py-6 md:px-8 md:py-8">
@@ -144,10 +164,12 @@ export default function Search() {
                 <div className="mt-5 flex gap-6 overflow-x-auto pb-2">
                   {filteredArtists.map((artist) => (
                     <ArtistCard
-                      key={artist.name}
-                      name={artist.name}
-                      genre={artist.genre}
-                      image={artist.image}
+                      key={artist.id}
+                      artist={artist}
+                      isFavorite={favorites.artists.some(
+                        (favorite) => favorite.id === artist.id,
+                      )}
+                      onFavorite={() => toggleFavorite(artist, "artists")}
                     />
                   ))}
                 </div>
@@ -170,11 +192,12 @@ export default function Search() {
                 <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                   {filteredAlbums.map((album) => (
                     <AlbumCard
-                      key={album.title}
-                      title={album.title}
-                      artist={album.artist}
-                      year={album.year}
-                      image={album.image}
+                      key={album.id}
+                      album={album}
+                      isFavorite={favorites.albums.some(
+                        (favorite) => favorite.id === album.id,
+                      )}
+                      onFavorite={() => toggleFavorite(album, "albums")}
                     />
                   ))}
                 </div>
@@ -197,11 +220,13 @@ export default function Search() {
                 <div className="mt-5 divide-y divide-border rounded-xl border border-border">
                   {filteredTracks.map((track, index) => (
                     <TrackItem
-                      key={track.title}
+                      key={track.id}
                       position={index + 1}
-                      title={track.title}
-                      artist={track.artist}
-                      duration={track.duration}
+                      track={track}
+                      isFavorite={favorites.tracks.some(
+                        (favorite) => favorite.id === track.id,
+                      )}
+                      onFavorite={() => toggleFavorite(track, "tracks")}
                     />
                   ))}
                 </div>

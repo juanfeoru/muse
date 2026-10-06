@@ -15,12 +15,17 @@ export default function ArtistCard({
   return (
     <article className="group min-w-32">
       <div className="relative aspect-square overflow-hidden rounded-full bg-surface-hover">
-        <img
-          src={artist.image}
-          alt={artist.name}
-          className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-
+        {artist.image ? (
+          <img
+            src={artist.image}
+            alt={artist.name}
+            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex size-full items-center justify-center text-muted-text">
+            <span className="text-3xl">♪</span>
+          </div>
+        )}
         <button
           type="button"
           onClick={onFavorite}
