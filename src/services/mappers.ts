@@ -1,5 +1,5 @@
-import type { Album, Artist } from "../types";
-import type { LastFmAlbum, LastFmArtist } from "../types/lastfm";
+import type { Album, Artist, Track } from "../types";
+import type { LastFmAlbum, LastFmArtist, LastFmTrack } from "../types/lastfm";
 
 export function mapLastFmArtist(artist: LastFmArtist): Artist {
   const image =
@@ -23,5 +23,14 @@ export function mapLastFmAlbum(album: LastFmAlbum): Album {
     title: album.name,
     artist: album.artist,
     image,
+  };
+}
+
+export function mapLastFmTrack(track: LastFmTrack): Track {
+  return {
+    id: track.mbid || `${track.artist}-${track.name}`,
+    title: track.name,
+    artist: track.artist,
+    listeners: Number(track.listeners),
   };
 }

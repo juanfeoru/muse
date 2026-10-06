@@ -36,3 +36,21 @@ export interface LastFmAlbumSearchResponse {
     };
   };
 }
+
+export interface LastFmTrack {
+  artist: string;
+  image: LastFmImage[];
+  listeners: string;
+  mbid: string;
+  name: string;
+  streamable: string;
+  url: string;
+}
+
+export interface LastFmTrackSearchResponse {
+  results: {
+    trackmatches: {
+      track: LastFmTrack[];
+    };
+  };
+}

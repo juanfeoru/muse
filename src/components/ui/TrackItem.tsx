@@ -42,9 +42,11 @@ export default function TrackItem({
         />
       </button>
 
-      <span className="w-10 text-right text-sm text-muted-text">
-        {track.duration}
-      </span>
+      {track.duration && (
+        <span className="w-10 text-right text-sm text-muted-text">
+          {track.duration}
+        </span>
+      )}
     </div>
   );
 }

@@ -4,45 +4,16 @@ import ArtistCard from "../components/ui/ArtistCard";
 import AlbumCard from "../components/ui/AlbumCard";
 import TrackItem from "../components/ui/TrackItem";
 import EmptyState from "../components/ui/EmptyState";
-import { searchAlbums, searchArtists } from "../services/lastfm";
-import { mapLastFmAlbum, mapLastFmArtist } from "../services/mappers";
+import { searchAlbums, searchArtists, searchTracks } from "../services/lastfm";
+import {
+  mapLastFmAlbum,
+  mapLastFmArtist,
+  mapLastFmTrack,
+} from "../services/mappers";
 import type { Album, Artist, FavoritesContext, Track } from "../types";
 import { useOutletContext } from "react-router";
 import LoadingState from "../components/ui/LoadingState";
 import ErrorState from "../components/ui/ErrorState";
-
-const tracks: Track[] = [
-  {
-    id: "1",
-    title: "we can't be friends",
-    artist: "Ariana Grande",
-    duration: "3:48",
-  },
-  {
-    id: "2",
-    title: "Blinding Lights",
-    artist: "The Weeknd",
-    duration: "3:20",
-  },
-  {
-    id: "3",
-    title: "Houdini",
-    artist: "Dua Lipa",
-    duration: "3:05",
-  },
-  {
-    id: "4",
-    title: "Pink + White",
-    artist: "Frank Ocean",
-    duration: "3:04",
-  },
-  {
-    id: "5",
-    title: "Supercut",
-    artist: "Lorde",
-    duration: "4:11",
-  },
-];
 
 export default function Search() {
   const { favorites, toggleFavorite } = useOutletContext<FavoritesContext>();
@@ -50,13 +21,16 @@ export default function Search() {
   const [query, setQuery] = useState("");
   const [artists, setArtists] = useState<Artist[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
+  const [tracks, setTracks] = useState<Track[]>([]);
   const [isLoading, setIsLoading] = useState({
     artists: false,
     albums: false,
+    tracks: false,
   });
   const [error, setError] = useState({
     artists: "",
     albums: "",
+    tracks: "",
   });
 
   const filteredArtists = artists.filter((artist) =>
@@ -144,9 +118,46 @@ export default function Search() {
       }
     }
 
+    async function fetchTracks() {
+      setIsLoading((prev) => ({
+        ...prev,
+        tracks: true,
+      }));
+
+      setError((prev) => ({
+        ...prev,
+        tracks: "",
+      }));
+
+      try {
+        const tracks = await searchTracks(query);
+
+        const mappedTracks = tracks.map((track) => {
+          return mapLastFmTrack(track);
+        });
+
+        setTracks(
+          [...mappedTracks]
+            .sort((a, b) => b.listeners - a.listeners)
+            .slice(0, 10),
+        );
+      } catch {
+        setError((prev) => ({
+          ...prev,
+          tracks: "Failed to search tracks",
+        }));
+      } finally {
+        setIsLoading((prev) => ({
+          ...prev,
+          tracks: false,
+        }));
+      }
+    }
+
     const timeoutId = setTimeout(() => {
       fetchArtists();
       fetchAlbums();
+      fetchTracks();
     }, 500);
 
     return () => clearTimeout(timeoutId);
@@ -258,7 +269,11 @@ export default function Search() {
                 Tracks
               </h2>
 
-              {filteredTracks.length > 0 ? (
+              {isLoading.tracks ? (
+                <LoadingState message="Searching tracks..." />
+              ) : error.tracks ? (
+                <ErrorState message={error.tracks} />
+              ) : filteredTracks.length > 0 ? (
                 <div className="mt-5 divide-y divide-border rounded-xl border border-border">
                   {filteredTracks.map((track, index) => (
                     <TrackItem
