@@ -10,6 +10,7 @@ export function mapLastFmArtist(artist: LastFmArtist): Artist {
     id: artist.mbid || artist.name,
     name: artist.name,
     image,
+    listeners: Number(artist.listeners),
   };
 }
 

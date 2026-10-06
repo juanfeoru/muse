@@ -3,4 +3,5 @@ export interface Artist {
   name: string;
   genre?: string;
   image?: string;
+  listeners: number;
 }

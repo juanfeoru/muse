@@ -72,7 +72,9 @@ export default function Search() {
           return mapLastFmArtist(artist);
         });
 
-        setArtists(mappedArtists);
+        setArtists(
+          [...mappedArtists].sort((a, b) => b.listeners - a.listeners),
+        );
       } catch {
         setError((prev) => ({
           ...prev,
