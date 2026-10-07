@@ -1,136 +1,69 @@
 import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useOutletContext } from "react-router";
+
 import ArtistCard from "../components/ui/ArtistCard";
 import SectionHeader from "../components/ui/SectionHeader";
 import AlbumCard from "../components/ui/AlbumCard";
 import TrackItem from "../components/ui/TrackItem";
+import LoadingState from "../components/ui/LoadingState";
+import ErrorState from "../components/ui/ErrorState";
+
 import type { Album, Artist, Track } from "../types";
-import { useOutletContext } from "react-router";
 import type { FavoritesContext } from "../types/favorite";
+
 import { getTopAlbums, getTopArtists, getTopTracks } from "../services/lastfm";
-import { useEffect, useState } from "react";
+
 import {
   mapLastFmArtist,
   mapLastFmChartTrack,
   mapLastFmTopAlbum,
 } from "../services/mappers";
-import LoadingState from "../components/ui/LoadingState";
-import ErrorState from "../components/ui/ErrorState";
 
 export default function Home() {
   const { favorites, toggleFavorite } = useOutletContext<FavoritesContext>();
-  const [artists, setArtists] = useState<Artist[]>([]);
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [albums, setAlbums] = useState<Album[]>([]);
+
   const [selectedGenre, setSelectedGenre] = useState("pop");
-  const [loading, setLoading] = useState({
-    artists: false,
-    tracks: false,
-    albums: false,
+
+  const {
+    data: artists = [],
+    isLoading: isLoadingArtists,
+    error: artistsError,
+  } = useQuery<Artist[]>({
+    queryKey: ["topArtists"],
+    queryFn: async () => {
+      const artists = await getTopArtists();
+
+      return artists.map(mapLastFmArtist).slice(0, 15);
+    },
   });
-  const [error, setError] = useState({
-    artists: "",
-    tracks: "",
-    albums: "",
+
+  const {
+    data: albums = [],
+    isLoading: isLoadingAlbums,
+    error: albumsError,
+  } = useQuery<Album[]>({
+    queryKey: ["topAlbums", selectedGenre],
+    queryFn: async () => {
+      const albums = await getTopAlbums(selectedGenre);
+
+      return albums.map(mapLastFmTopAlbum).slice(0, 15);
+    },
   });
 
-  useEffect(() => {
-    async function fetchTopArtists() {
-      setLoading((prev) => ({
-        ...prev,
-        artists: true,
-      }));
+  const {
+    data: tracks = [],
+    isLoading: isLoadingTracks,
+    error: tracksError,
+  } = useQuery<Track[]>({
+    queryKey: ["topTracks"],
+    queryFn: async () => {
+      const tracks = await getTopTracks();
 
-      setError((prev) => ({
-        ...prev,
-        artists: "",
-      }));
-
-      try {
-        const artists = await getTopArtists();
-
-        const mappedArtists = artists.map(mapLastFmArtist).slice(0, 15);
-
-        setArtists(mappedArtists);
-      } catch {
-        setError((prev) => ({
-          ...prev,
-          artists: "Failed to get top artists",
-        }));
-      } finally {
-        setLoading((prev) => ({
-          ...prev,
-          artists: false,
-        }));
-      }
-    }
-
-    async function fetchTopTracks() {
-      setLoading((prev) => ({
-        ...prev,
-        tracks: true,
-      }));
-
-      setError((prev) => ({
-        ...prev,
-        tracks: "",
-      }));
-
-      try {
-        const tracks = await getTopTracks();
-
-        const mappedTracks = tracks.map(mapLastFmChartTrack).slice(0, 15);
-
-        setTracks(mappedTracks);
-      } catch {
-        setError((prev) => ({
-          ...prev,
-          tracks: "Failed to get top tracks",
-        }));
-      } finally {
-        setLoading((prev) => ({
-          ...prev,
-          tracks: false,
-        }));
-      }
-    }
-
-    fetchTopTracks();
-    fetchTopArtists();
-  }, []);
-
-  useEffect(() => {
-    async function fetchTopAlbums() {
-      setLoading((prev) => ({
-        ...prev,
-        albums: true,
-      }));
-
-      setError((prev) => ({
-        ...prev,
-        albums: "",
-      }));
-
-      try {
-        const albums = await getTopAlbums(selectedGenre);
-
-        const mappedAlbums = albums.map(mapLastFmTopAlbum).slice(0, 15);
-
-        setAlbums(mappedAlbums);
-      } catch {
-        setError((prev) => ({
-          ...prev,
-          albums: "Failed to get top albums",
-        }));
-      } finally {
-        setLoading((prev) => ({
-          ...prev,
-          albums: false,
-        }));
-      }
-    }
-
-    fetchTopAlbums();
-  }, [selectedGenre]);
+      return tracks.map(mapLastFmChartTrack).slice(0, 10);
+    },
+  });
 
   return (
     <section className="px-5 py-6 md:px-8 md:py-8">
@@ -150,7 +83,7 @@ export default function Home() {
 
           <button
             type="button"
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 font-medium text-background transition-colors hover:bg-accent-hover cursor-pointer"
+            className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-accent px-4 py-2.5 font-medium text-background transition-colors hover:bg-accent-hover"
           >
             Explore music
             <ArrowRight size={18} />
@@ -159,16 +92,17 @@ export default function Home() {
 
         <div className="absolute -right-20 -top-20 size-64 rounded-full bg-accent/10 blur-3xl" />
       </div>
+
       <section className="mt-10">
         <SectionHeader title="Popular Artists" action="See all" />
 
         <div className="mt-5">
-          {loading.artists && <LoadingState message="Loading artists..." />}
+          {isLoadingArtists && <LoadingState message="Loading artists..." />}
 
-          {error.artists && <ErrorState message={error.artists} />}
+          {artistsError && <ErrorState message="Failed to get top artists" />}
 
-          {!loading.artists && !error.artists && artists && (
-            <div className="flex gap-6 overflow-x-auto pb-2 scrollbar-dark">
+          {!isLoadingArtists && !artistsError && (
+            <div className="scrollbar-dark flex gap-6 overflow-x-auto pb-2">
               {artists.map((artist) => (
                 <ArtistCard
                   key={artist.id}
@@ -194,7 +128,7 @@ export default function Home() {
                 <button
                   key={genre}
                   type="button"
-                  className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium capitalize transition-colors cursor-pointer ${
+                  className={`shrink-0 cursor-pointer rounded-full border px-4 py-2 text-sm font-medium capitalize transition-colors ${
                     selectedGenre === genre
                       ? "border-accent bg-accent text-background"
                       : "border-border bg-surface text-secondary-text hover:border-accent/50 hover:text-primary-text"
@@ -208,11 +142,11 @@ export default function Home() {
           </div>
 
           <div className="mt-5">
-            {loading.albums && <LoadingState message="Loading albums..." />}
+            {isLoadingAlbums && <LoadingState message="Loading albums..." />}
 
-            {error.albums && <ErrorState message={error.albums} />}
+            {albumsError && <ErrorState message="Failed to get top albums" />}
 
-            {!loading.albums && !error.albums && albums && (
+            {!isLoadingAlbums && !albumsError && (
               <div className="scrollbar-dark flex gap-5 overflow-x-auto pb-2">
                 {albums.map((album) => (
                   <AlbumCard
@@ -234,11 +168,11 @@ export default function Home() {
         <SectionHeader title="Popular Tracks" action="See all" />
 
         <div className="mt-5">
-          {loading.tracks && <LoadingState message="Loading tracks..." />}
+          {isLoadingTracks && <LoadingState message="Loading tracks..." />}
 
-          {error.tracks && <ErrorState message={error.tracks} />}
+          {tracksError && <ErrorState message="Failed to get top tracks" />}
 
-          {!loading.tracks && !error.tracks && tracks && (
+          {!isLoadingTracks && !tracksError && (
             <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
               {tracks.map((track, index) => (
                 <TrackItem
