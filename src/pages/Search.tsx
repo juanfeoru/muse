@@ -1,169 +1,92 @@
 import { Search as SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useOutletContext } from "react-router";
+
 import ArtistCard from "../components/ui/ArtistCard";
 import AlbumCard from "../components/ui/AlbumCard";
 import TrackItem from "../components/ui/TrackItem";
 import EmptyState from "../components/ui/EmptyState";
+import LoadingState from "../components/ui/LoadingState";
+import ErrorState from "../components/ui/ErrorState";
+
 import { searchAlbums, searchArtists, searchTracks } from "../services/lastfm";
+
 import {
   mapLastFmAlbum,
   mapLastFmArtist,
   mapLastFmTrack,
 } from "../services/mappers";
+
 import type { Album, Artist, FavoritesContext, Track } from "../types";
-import { useOutletContext } from "react-router";
-import LoadingState from "../components/ui/LoadingState";
-import ErrorState from "../components/ui/ErrorState";
+
+function useDebounce<T>(value: T, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => clearTimeout(timeoutId);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 export default function Search() {
   const { favorites, toggleFavorite } = useOutletContext<FavoritesContext>();
 
   const [query, setQuery] = useState("");
-  const [artists, setArtists] = useState<Artist[]>([]);
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [isLoading, setIsLoading] = useState({
-    artists: false,
-    albums: false,
-    tracks: false,
+
+  const debouncedQuery = useDebounce(query.trim(), 500);
+
+  const {
+    data: artists = [],
+    isLoading: isLoadingArtists,
+    error: artistsError,
+  } = useQuery<Artist[]>({
+    queryKey: ["search", "artists", debouncedQuery],
+    queryFn: async () => {
+      const artists = await searchArtists(debouncedQuery);
+
+      return artists
+        .map(mapLastFmArtist)
+        .sort((a, b) => b.listeners - a.listeners);
+    },
+    enabled: debouncedQuery.length > 0,
   });
-  const [error, setError] = useState({
-    artists: "",
-    albums: "",
-    tracks: "",
+
+  const {
+    data: albums = [],
+    isLoading: isLoadingAlbums,
+    error: albumsError,
+  } = useQuery<Album[]>({
+    queryKey: ["search", "albums", debouncedQuery],
+    queryFn: async () => {
+      const albums = await searchAlbums(debouncedQuery);
+
+      return albums.map(mapLastFmAlbum);
+    },
+    enabled: debouncedQuery.length > 0,
   });
 
-  const filteredArtists = artists.filter((artist) =>
-    artist.name.toLowerCase().includes(query.toLowerCase().trim()),
-  );
+  const {
+    data: tracks = [],
+    isLoading: isLoadingTracks,
+    error: tracksError,
+  } = useQuery<Track[]>({
+    queryKey: ["search", "tracks", debouncedQuery],
+    queryFn: async () => {
+      const tracks = await searchTracks(debouncedQuery);
 
-  const filteredAlbums = albums.filter(
-    (album) =>
-      album.title.toLowerCase().includes(query.toLowerCase().trim()) ||
-      album.artist.toLowerCase().includes(query.toLowerCase().trim()),
-  );
-
-  const filteredTracks = tracks.filter(
-    (track) =>
-      track.title.toLowerCase().includes(query.toLowerCase().trim()) ||
-      track.artist.toLowerCase().includes(query.toLowerCase().trim()),
-  );
-
-  useEffect(() => {
-    if (!query.trim()) {
-      return;
-    }
-
-    async function fetchArtists() {
-      setIsLoading((prev) => ({
-        ...prev,
-        artists: true,
-      }));
-
-      setError((prev) => ({
-        ...prev,
-        artists: "",
-      }));
-
-      try {
-        const artists = await searchArtists(query);
-
-        const mappedArtists = artists.map((artist) => {
-          return mapLastFmArtist(artist);
-        });
-
-        setArtists(
-          [...mappedArtists].sort((a, b) => b.listeners - a.listeners),
-        );
-      } catch {
-        setError((prev) => ({
-          ...prev,
-          artists: "Failed to search artists",
-        }));
-      } finally {
-        setIsLoading((prev) => ({
-          ...prev,
-          artists: false,
-        }));
-      }
-    }
-
-    async function fetchAlbums() {
-      setIsLoading((prev) => ({
-        ...prev,
-        albums: true,
-      }));
-
-      setError((prev) => ({
-        ...prev,
-        albums: "",
-      }));
-
-      try {
-        const albums = await searchAlbums(query);
-
-        const mappedAlbums = albums.map((album) => {
-          return mapLastFmAlbum(album);
-        });
-
-        setAlbums(mappedAlbums);
-      } catch {
-        setError((prev) => ({
-          ...prev,
-          albums: "Failed to search albums",
-        }));
-      } finally {
-        setIsLoading((prev) => ({
-          ...prev,
-          albums: false,
-        }));
-      }
-    }
-
-    async function fetchTracks() {
-      setIsLoading((prev) => ({
-        ...prev,
-        tracks: true,
-      }));
-
-      setError((prev) => ({
-        ...prev,
-        tracks: "",
-      }));
-
-      try {
-        const tracks = await searchTracks(query);
-
-        const mappedTracks = tracks.map((track) => {
-          return mapLastFmTrack(track);
-        });
-
-        setTracks(
-          [...mappedTracks]
-            .sort((a, b) => b.listeners - a.listeners)
-            .slice(0, 10),
-        );
-      } catch {
-        setError((prev) => ({
-          ...prev,
-          tracks: "Failed to search tracks",
-        }));
-      } finally {
-        setIsLoading((prev) => ({
-          ...prev,
-          tracks: false,
-        }));
-      }
-    }
-
-    const timeoutId = setTimeout(() => {
-      fetchArtists();
-      fetchAlbums();
-      fetchTracks();
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [query]);
+      return tracks
+        .map(mapLastFmTrack)
+        .sort((a, b) => b.listeners - a.listeners)
+        .slice(0, 10);
+    },
+    enabled: debouncedQuery.length > 0,
+  });
 
   return (
     <section className="px-5 py-6 md:px-8 md:py-8">
@@ -207,13 +130,14 @@ export default function Search() {
               <h2 className="text-xl font-semibold text-primary-text">
                 Artists
               </h2>
-              {isLoading.artists ? (
+
+              {isLoadingArtists ? (
                 <LoadingState message="Searching artists..." />
-              ) : error.artists ? (
-                <ErrorState message={error.artists} />
-              ) : filteredArtists.length > 0 ? (
+              ) : artistsError ? (
+                <ErrorState message="Failed to search artists" />
+              ) : artists.length > 0 ? (
                 <div className="scrollbar-dark mt-5 flex gap-6 overflow-x-auto pb-2">
-                  {filteredArtists.map((artist) => (
+                  {artists.map((artist) => (
                     <ArtistCard
                       key={artist.id}
                       artist={artist}
@@ -239,13 +163,13 @@ export default function Search() {
                 Albums
               </h2>
 
-              {isLoading.albums ? (
+              {isLoadingAlbums ? (
                 <LoadingState message="Searching albums..." />
-              ) : error.albums ? (
-                <ErrorState message={error.albums} />
-              ) : filteredAlbums.length > 0 ? (
+              ) : albumsError ? (
+                <ErrorState message="Failed to search albums" />
+              ) : albums.length > 0 ? (
                 <div className="scrollbar-dark mt-5 flex gap-5 overflow-x-auto pb-2">
-                  {filteredAlbums.map((album) => (
+                  {albums.map((album) => (
                     <AlbumCard
                       key={album.id}
                       album={album}
@@ -271,13 +195,13 @@ export default function Search() {
                 Tracks
               </h2>
 
-              {isLoading.tracks ? (
+              {isLoadingTracks ? (
                 <LoadingState message="Searching tracks..." />
-              ) : error.tracks ? (
-                <ErrorState message={error.tracks} />
-              ) : filteredTracks.length > 0 ? (
+              ) : tracksError ? (
+                <ErrorState message="Failed to search tracks" />
+              ) : tracks.length > 0 ? (
                 <div className="mt-5 divide-y divide-border rounded-xl border border-border">
-                  {filteredTracks.map((track, index) => (
+                  {tracks.map((track, index) => (
                     <TrackItem
                       key={track.id}
                       position={index + 1}
