@@ -6,9 +6,13 @@ import TrackItem from "../components/ui/TrackItem";
 import type { Album, Artist, Track } from "../types";
 import { useOutletContext } from "react-router";
 import type { FavoritesContext } from "../types/favorite";
-import { getTopArtists, getTopTracks } from "../services/lastfm";
+import { getTopAlbums, getTopArtists, getTopTracks } from "../services/lastfm";
 import { useEffect, useState } from "react";
-import { mapLastFmArtist, mapLastFmChartTrack } from "../services/mappers";
+import {
+  mapLastFmArtist,
+  mapLastFmChartTrack,
+  mapLastFmTopAlbum,
+} from "../services/mappers";
 import LoadingState from "../components/ui/LoadingState";
 import ErrorState from "../components/ui/ErrorState";
 
@@ -16,13 +20,17 @@ export default function Home() {
   const { favorites, toggleFavorite } = useOutletContext<FavoritesContext>();
   const [artists, setArtists] = useState<Artist[]>([]);
   const [tracks, setTracks] = useState<Track[]>([]);
+  const [albums, setAlbums] = useState<Album[]>([]);
+  const [selectedGenre, setSelectedGenre] = useState("pop");
   const [loading, setLoading] = useState({
     artists: false,
     tracks: false,
+    albums: false,
   });
   const [error, setError] = useState({
     artists: "",
     tracks: "",
+    albums: "",
   });
 
   useEffect(() => {
@@ -90,6 +98,40 @@ export default function Home() {
     fetchTopArtists();
   }, []);
 
+  useEffect(() => {
+    async function fetchTopAlbums() {
+      setLoading((prev) => ({
+        ...prev,
+        albums: true,
+      }));
+
+      setError((prev) => ({
+        ...prev,
+        albums: "",
+      }));
+
+      try {
+        const albums = await getTopAlbums(selectedGenre);
+
+        const mappedAlbums = albums.map(mapLastFmTopAlbum).slice(0, 15);
+
+        setAlbums(mappedAlbums);
+      } catch {
+        setError((prev) => ({
+          ...prev,
+          albums: "Failed to get top albums",
+        }));
+      } finally {
+        setLoading((prev) => ({
+          ...prev,
+          albums: false,
+        }));
+      }
+    }
+
+    fetchTopAlbums();
+  }, [selectedGenre]);
+
   return (
     <section className="px-5 py-6 md:px-8 md:py-8">
       <div className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6 md:p-10">
@@ -141,22 +183,53 @@ export default function Home() {
           )}
         </div>
       </section>
+
       <section className="mt-12">
         <SectionHeader title="Popular Albums" action="See all" />
 
-        <div className="flex gap-5 overflow-x-auto pb-2">
-          {/* albums.map((album) => (
-            <AlbumCard
-              key={album.id}
-              album={album}
-              isFavorite={favorites.albums.some(
-                (favorite) => favorite.id === album.id,
-              )}
-              onFavorite={() => toggleFavorite(album, "albums")}
-            />
-          )) */}
+        <div className="mt-5">
+          <div className="scrollbar-dark flex gap-2 overflow-x-auto pb-2">
+            {["pop", "rock", "disco", "electronic", "hip-hop", "jazz"].map(
+              (genre) => (
+                <button
+                  key={genre}
+                  type="button"
+                  className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium capitalize transition-colors cursor-pointer ${
+                    selectedGenre === genre
+                      ? "border-accent bg-accent text-background"
+                      : "border-border bg-surface text-secondary-text hover:border-accent/50 hover:text-primary-text"
+                  }`}
+                  onClick={() => setSelectedGenre(genre)}
+                >
+                  {genre}
+                </button>
+              ),
+            )}
+          </div>
+
+          <div className="mt-5">
+            {loading.albums && <LoadingState message="Loading albums..." />}
+
+            {error.albums && <ErrorState message={error.albums} />}
+
+            {!loading.albums && !error.albums && albums && (
+              <div className="scrollbar-dark flex gap-5 overflow-x-auto pb-2">
+                {albums.map((album) => (
+                  <AlbumCard
+                    key={album.id}
+                    album={album}
+                    isFavorite={favorites.albums.some(
+                      (favorite) => favorite.id === album.id,
+                    )}
+                    onFavorite={() => toggleFavorite(album, "albums")}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
+
       <section className="mt-12">
         <SectionHeader title="Popular Tracks" action="See all" />
 

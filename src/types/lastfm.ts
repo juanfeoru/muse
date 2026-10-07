@@ -209,3 +209,16 @@ export interface LastFmTopTracksResponse {
     track: LastFmChartTrack[];
   };
 }
+
+export interface LastFmTopAlbumsResponse {
+  albums: {
+    "@attr": {
+      page: string;
+      perPage: string;
+      tag: string;
+      total: string;
+      totalPages: string;
+    };
+    album: LastFmTopAlbum[];
+  };
+}

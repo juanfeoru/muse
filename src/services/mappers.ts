@@ -116,3 +116,17 @@ export function mapLastFmChartTrack(track: LastFmChartTrack): Track {
     listeners: Number(track.listeners),
   };
 }
+
+export function mapLastFmTopAlbum(album: LastFmTopAlbum): Album {
+  const image =
+    album.image.find((image) => image.size === "extralarge")?.["#text"] ||
+    album.image.find((image) => image["#text"] !== "")?.["#text"] ||
+    "";
+
+  return {
+    id: album.mbid || `${album.artist.name}-${album.name}`,
+    title: album.name,
+    artist: album.artist.name,
+    image,
+  };
+}
