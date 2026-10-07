@@ -1,6 +1,7 @@
 import type {
   LastFmAlbumSearchResponse,
   LastFmArtistSearchResponse,
+  LastFmGetArtistInfoResponse,
   LastFmTrackSearchResponse,
 } from "../types/lastfm";
 
@@ -62,4 +63,23 @@ export async function searchTracks(query: string) {
   const data: LastFmTrackSearchResponse = await response.json();
 
   return data.results.trackmatches.track;
+}
+
+export async function getArtistInfo(identifier: string) {
+  const url = new URL(BASE_URL);
+
+  url.searchParams.set("method", "artist.getInfo");
+  url.searchParams.set("artist", identifier);
+  url.searchParams.set("api_key", API_KEY);
+  url.searchParams.set("format", "json");
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch artist info");
+  }
+
+  const data: LastFmGetArtistInfoResponse = await response.json();
+
+  return data.artist;
 }

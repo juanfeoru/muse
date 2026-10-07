@@ -5,6 +5,7 @@ import Favorites from "./pages/Favorites";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
 import { useFavorites } from "./hooks/useFavorites";
+import ArtistDetail from "./pages/ArtistDetail";
 
 export default function App() {
   const { favorites, toggleFavorite } = useFavorites();
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/discover" element={<Discover />} />
         <Route path="/search" element={<Search />} />
         <Route path="/favorites" element={<Favorites />} />
+        <Route path="/artist/:identifier" element={<ArtistDetail />} />
       </Route>
     </Routes>
   );

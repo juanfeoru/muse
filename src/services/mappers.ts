@@ -1,5 +1,11 @@
-import type { Album, Artist, Track } from "../types";
-import type { LastFmAlbum, LastFmArtist, LastFmTrack } from "../types/lastfm";
+import type { Album, Artist, ArtistDetail, Track } from "../types";
+import type {
+  LastFmAlbum,
+  LastFmArtist,
+  LastFmArtistInfo,
+  LastFmTrack,
+} from "../types/lastfm";
+import { stripHtml } from "../utils/stripHtml";
 
 export function mapLastFmArtist(artist: LastFmArtist): Artist {
   const image =
@@ -33,5 +39,30 @@ export function mapLastFmTrack(track: LastFmTrack): Track {
     title: track.name,
     artist: track.artist,
     listeners: Number(track.listeners),
+  };
+}
+
+export function maplastFmArtistInfo(
+  artistInfo: LastFmArtistInfo,
+): ArtistDetail {
+  const image =
+    artistInfo.image.find((image) => image.size === "extralarge")?.["#text"] ||
+    artistInfo.image.find((image) => image["#text"] !== "")?.["#text"];
+
+  return {
+    bio: stripHtml(artistInfo.bio.summary),
+    image,
+    id: artistInfo.mbid || artistInfo.name,
+    name: artistInfo.name,
+    similar: artistInfo.similar.artist.map((artist) => ({
+      image:
+        artist.image.find((image) => image.size === "extralarge")?.["#text"] ||
+        artist.image.find((image) => image["#text"] !== "")?.["#text"] ||
+        "",
+      name: artist.name,
+    })),
+    listeners: artistInfo.stats.listeners,
+    playcount: artistInfo.stats.playcount,
+    tags: artistInfo.tags.tag.map((tag) => tag.name),
   };
 }

@@ -54,3 +54,51 @@ export interface LastFmTrackSearchResponse {
     };
   };
 }
+
+interface LastFmArtistBio {
+  links: {
+    link: {
+      "#text": string;
+      href: string;
+      rel: string;
+    };
+  };
+  published: string;
+  summary: string;
+  content: string;
+}
+
+interface LastFmSimilarArtist {
+  name: string;
+  url: string;
+  image: LastFmImage[];
+}
+
+interface LastFmArtistTag {
+  name: string;
+  url: string;
+}
+
+export interface LastFmArtistInfo {
+  name: string;
+  mbid: string;
+  url: string;
+  streamable: string;
+  ontour: string;
+  image: LastFmImage[];
+  stats: {
+    listeners: string;
+    playcount: string;
+  };
+  bio: LastFmArtistBio;
+  similar: {
+    artist: LastFmSimilarArtist[];
+  };
+  tags: {
+    tag: LastFmArtistTag[];
+  };
+}
+
+export interface LastFmGetArtistInfoResponse {
+  artist: LastFmArtistInfo;
+}

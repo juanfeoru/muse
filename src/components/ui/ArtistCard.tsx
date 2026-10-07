@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import type { Artist } from "../../types";
+import { Link } from "react-router";
 
 interface ArtistCardProps {
   artist: Artist;
@@ -15,17 +16,20 @@ export default function ArtistCard({
   return (
     <article className="group min-w-32">
       <div className="relative aspect-square overflow-hidden rounded-full bg-surface-hover">
-        {artist.image ? (
-          <img
-            src={artist.image}
-            alt={artist.name}
-            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex size-full items-center justify-center text-muted-text">
-            <span className="text-3xl">♪</span>
-          </div>
-        )}
+        <Link to={`/artist/${artist.name}`} aria-label={`View ${artist.name}`}>
+          {artist.image ? (
+            <img
+              src={artist.image}
+              alt={artist.name}
+              className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex size-full items-center justify-center text-muted-text">
+              <span className="text-3xl">♪</span>
+            </div>
+          )}
+        </Link>
+
         <button
           type="button"
           onClick={onFavorite}
@@ -41,7 +45,7 @@ export default function ArtistCard({
             className={isFavorite ? "fill-accent text-accent" : ""}
           />
         </button>
-      </div>{" "}
+      </div>
     </article>
   );
 }
