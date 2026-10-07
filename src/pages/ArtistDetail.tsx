@@ -1,172 +1,81 @@
 import { ArrowLeft, Headphones, Heart, Play } from "lucide-react";
-import ArtistCard from "../components/ui/ArtistCard";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useOutletContext, useParams } from "react-router";
+
+import ArtistCard from "../components/ui/ArtistCard";
+import TrackItem from "../components/ui/TrackItem";
+import AlbumCard from "../components/ui/AlbumCard";
+import LoadingState from "../components/ui/LoadingState";
+import ErrorState from "../components/ui/ErrorState";
+
 import {
   getArtistInfo,
   getArtistTopAlbums,
   getArtistTopTracks,
 } from "../services/lastfm";
-import { useEffect, useState } from "react";
-import type { ArtistDetail } from "../types/artist";
+
 import {
   mapLastFmArtistInfo,
   mapLastFmArtistTopAlbums,
   mapLastFmArtistTopTracks,
 } from "../services/mappers";
+
+import type { ArtistDetail } from "../types/artist";
 import type { Album, FavoritesContext, Track } from "../types";
-import LoadingState from "../components/ui/LoadingState";
-import ErrorState from "../components/ui/ErrorState";
-import TrackItem from "../components/ui/TrackItem";
-import AlbumCard from "../components/ui/AlbumCard";
 
 export default function ArtistDetail() {
-  const [artist, setArtist] = useState<ArtistDetail | null>(null);
-  const [tracks, setTracks] = useState<Track[] | null>(null);
-  const [albums, setAlbums] = useState<Album[] | null>(null);
-  const [loading, setLoading] = useState({
-    artist: false,
-    tracks: false,
-    albums: false,
-  });
-  const [error, setError] = useState({
-    artist: "",
-    tracks: "",
-    albums: "",
-  });
-
   const { identifier } = useParams<{ identifier: string }>();
-
   const navigate = useNavigate();
 
   const { favorites, toggleFavorite } = useOutletContext<FavoritesContext>();
 
-  useEffect(() => {
-    async function loadArtistInfo() {
-      setLoading((prev) => ({
-        ...prev,
-        artist: true,
-      }));
-      setError((prev) => ({
-        ...prev,
-        artist: "",
-      }));
+  const {
+    data: artist,
+    isLoading: isLoadingArtist,
+    error: artistError,
+  } = useQuery<ArtistDetail>({
+    queryKey: ["artist", identifier],
+    queryFn: async () => {
+      const data = await getArtistInfo(identifier!);
 
-      if (!identifier) {
-        setLoading((prev) => ({
-          ...prev,
-          artist: false,
-        }));
-        setError((prev) => ({
-          ...prev,
-          artist: "Artist not found",
-        }));
-        return;
-      }
+      return mapLastFmArtistInfo(data);
+    },
+    enabled: Boolean(identifier),
+  });
 
-      try {
-        const data = await getArtistInfo(identifier);
+  const {
+    data: tracks = [],
+    isLoading: isLoadingTracks,
+    error: tracksError,
+  } = useQuery<Track[]>({
+    queryKey: ["artist", identifier, "tracks"],
+    queryFn: async () => {
+      const data = await getArtistTopTracks(identifier!);
 
-        const artist = mapLastFmArtistInfo(data);
+      return mapLastFmArtistTopTracks(data).slice(0, 10);
+    },
+    enabled: Boolean(identifier),
+  });
 
-        setArtist(artist);
-      } catch {
-        setError((prev) => ({
-          ...prev,
-          artist: "Failed to fetch artist info",
-        }));
-      } finally {
-        setLoading((prev) => ({
-          ...prev,
-          artist: false,
-        }));
-      }
-    }
+  const {
+    data: albums = [],
+    isLoading: isLoadingAlbums,
+    error: albumsError,
+  } = useQuery<Album[]>({
+    queryKey: ["artist", identifier, "albums"],
+    queryFn: async () => {
+      const data = await getArtistTopAlbums(identifier!);
 
-    loadArtistInfo();
-  }, [identifier]);
+      return mapLastFmArtistTopAlbums(data).slice(0, 10);
+    },
+    enabled: Boolean(identifier),
+  });
 
-  useEffect(() => {
-    if (!artist) {
-      return;
-    }
-
-    async function loadArtistTopTracks() {
-      if (!identifier) {
-        return;
-      }
-
-      setLoading((prev) => ({
-        ...prev,
-        tracks: true,
-      }));
-
-      setError((prev) => ({
-        ...prev,
-        tracks: "",
-      }));
-
-      try {
-        const data = await getArtistTopTracks(identifier);
-
-        const tracks = mapLastFmArtistTopTracks(data);
-
-        setTracks(tracks.slice(0, 10));
-      } catch {
-        setError((prev) => ({
-          ...prev,
-          tracks: "Failed to fetch artist top tracks",
-        }));
-      } finally {
-        setLoading((prev) => ({
-          ...prev,
-          tracks: false,
-        }));
-      }
-    }
-
-    async function loadArtistTopAlbums() {
-      if (!identifier) {
-        return;
-      }
-
-      setLoading((prev) => ({
-        ...prev,
-        albums: true,
-      }));
-
-      setError((prev) => ({
-        ...prev,
-        albums: "",
-      }));
-
-      try {
-        const data = await getArtistTopAlbums(identifier);
-
-        const albums = mapLastFmArtistTopAlbums(data);
-
-        setAlbums(albums.slice(0, 10));
-      } catch {
-        setError((prev) => ({
-          ...prev,
-          albums: "Failed to fetch artist top albums",
-        }));
-      } finally {
-        setLoading((prev) => ({
-          ...prev,
-          albums: false,
-        }));
-      }
-    }
-
-    loadArtistTopTracks();
-    loadArtistTopAlbums();
-  }, [artist, identifier]);
-
-  if (loading.artist) {
+  if (isLoadingArtist) {
     return <LoadingState message="Loading artist..." />;
   }
 
-  if (error.artist || !artist) {
+  if (artistError || !artist) {
     return (
       <section className="px-5 py-6 md:px-8 md:py-8">
         <button
@@ -179,7 +88,7 @@ export default function ArtistDetail() {
         </button>
 
         <div className="mt-8">
-          <ErrorState message={error.artist ?? "Artist not found"} />
+          <ErrorState message="Failed to fetch artist info" />
         </div>
       </section>
     );
@@ -192,8 +101,9 @@ export default function ArtistDetail() {
   return (
     <section className="px-5 py-6 md:px-8 md:py-8">
       <button
+        type="button"
         onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-sm text-secondary-text transition-colors hover:text-primary-text cursor-pointer"
+        className="inline-flex cursor-pointer items-center gap-2 text-sm text-secondary-text transition-colors hover:text-primary-text"
       >
         <ArrowLeft size={18} />
         Back
@@ -261,7 +171,7 @@ export default function ArtistDetail() {
         </div>
       </section>
 
-      <section className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-xl">
+      <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:max-w-xl">
         <div className="rounded-xl border border-border bg-surface p-5">
           <div className="flex items-center gap-2 text-muted-text">
             <Headphones size={17} />
@@ -299,11 +209,13 @@ export default function ArtistDetail() {
         <h2 className="text-xl font-semibold text-primary-text">Top Tracks</h2>
 
         <div className="mt-5">
-          {loading.tracks && <LoadingState message="Loading tracks..." />}
+          {isLoadingTracks && <LoadingState message="Loading tracks..." />}
 
-          {error.tracks && <ErrorState message={error.tracks} />}
+          {tracksError && (
+            <ErrorState message="Failed to fetch artist top tracks" />
+          )}
 
-          {!loading.tracks && !error.tracks && tracks && (
+          {!isLoadingTracks && !tracksError && (
             <div className="overflow-hidden rounded-xl border border-border bg-surface">
               {tracks.map((track, index) => (
                 <TrackItem
@@ -325,11 +237,13 @@ export default function ArtistDetail() {
         <h2 className="text-xl font-semibold text-primary-text">Top Albums</h2>
 
         <div className="mt-5">
-          {loading.albums && <LoadingState message="Loading albums..." />}
+          {isLoadingAlbums && <LoadingState message="Loading albums..." />}
 
-          {error.albums && <ErrorState message={error.albums} />}
+          {albumsError && (
+            <ErrorState message="Failed to fetch artist top albums" />
+          )}
 
-          {!loading.albums && !error.albums && albums && (
+          {!isLoadingAlbums && !albumsError && (
             <div className="scrollbar-dark flex gap-5 overflow-x-auto pb-2">
               {albums.map((album) => (
                 <AlbumCard
