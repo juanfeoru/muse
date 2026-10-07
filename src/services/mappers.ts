@@ -3,6 +3,7 @@ import type {
   LastFmAlbum,
   LastFmArtist,
   LastFmArtistInfo,
+  LastFmChartTrack,
   LastFmTopAlbum,
   LastFmTopTrack,
   LastFmTrack,
@@ -99,4 +100,19 @@ export function mapLastFmArtistTopAlbums(albums: LastFmTopAlbum[]): Album[] {
       image,
     };
   });
+}
+
+export function mapLastFmChartTrack(track: LastFmChartTrack): Track {
+  const image =
+    track.image.find((image) => image.size === "extralarge")?.["#text"] ||
+    track.image.find((image) => image["#text"] !== "")?.["#text"];
+
+  return {
+    id: track.mbid || `${track.artist.name}-${track.name}`,
+    title: track.name,
+    artist: track.artist.name,
+    image,
+    duration: track.duration,
+    listeners: Number(track.listeners),
+  };
 }

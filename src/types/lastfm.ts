@@ -182,3 +182,30 @@ export interface LastFmTopArtistsResponse {
     artist: LastFmArtist[];
   };
 }
+
+export interface LastFmChartTrack {
+  artist: LastFmTopAlbumArtist;
+  duration: string;
+  image: LastFmImage[];
+  listeners: string;
+  mbid: string;
+  name: string;
+  playcount: string;
+  streamable: {
+    fulltrack: string;
+    "#text": string;
+  };
+  url: string;
+}
+
+export interface LastFmTopTracksResponse {
+  tracks: {
+    "@attr": {
+      page: string;
+      perPage: string;
+      total: string;
+      totalPages: string;
+    };
+    track: LastFmChartTrack[];
+  };
+}

@@ -6,20 +6,23 @@ import TrackItem from "../components/ui/TrackItem";
 import type { Album, Artist, Track } from "../types";
 import { useOutletContext } from "react-router";
 import type { FavoritesContext } from "../types/favorite";
-import { getTopArtists } from "../services/lastfm";
+import { getTopArtists, getTopTracks } from "../services/lastfm";
 import { useEffect, useState } from "react";
-import { mapLastFmArtist } from "../services/mappers";
+import { mapLastFmArtist, mapLastFmChartTrack } from "../services/mappers";
 import LoadingState from "../components/ui/LoadingState";
 import ErrorState from "../components/ui/ErrorState";
 
 export default function Home() {
   const { favorites, toggleFavorite } = useOutletContext<FavoritesContext>();
   const [artists, setArtists] = useState<Artist[]>([]);
+  const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState({
     artists: false,
+    tracks: false,
   });
   const [error, setError] = useState({
     artists: "",
+    tracks: "",
   });
 
   useEffect(() => {
@@ -53,6 +56,37 @@ export default function Home() {
       }
     }
 
+    async function fetchTopTracks() {
+      setLoading((prev) => ({
+        ...prev,
+        tracks: true,
+      }));
+
+      setError((prev) => ({
+        ...prev,
+        tracks: "",
+      }));
+
+      try {
+        const tracks = await getTopTracks();
+
+        const mappedTracks = tracks.map(mapLastFmChartTrack).slice(0, 15);
+
+        setTracks(mappedTracks);
+      } catch {
+        setError((prev) => ({
+          ...prev,
+          tracks: "Failed to get top tracks",
+        }));
+      } finally {
+        setLoading((prev) => ({
+          ...prev,
+          tracks: false,
+        }));
+      }
+    }
+
+    fetchTopTracks();
     fetchTopArtists();
   }, []);
 
@@ -83,7 +117,6 @@ export default function Home() {
 
         <div className="absolute -right-20 -top-20 size-64 rounded-full bg-accent/10 blur-3xl" />
       </div>
-
       <section className="mt-10">
         <SectionHeader title="Popular Artists" action="See all" />
 
@@ -108,7 +141,6 @@ export default function Home() {
           )}
         </div>
       </section>
-
       <section className="mt-12">
         <SectionHeader title="Popular Albums" action="See all" />
 
@@ -125,22 +157,29 @@ export default function Home() {
           )) */}
         </div>
       </section>
-
       <section className="mt-12">
         <SectionHeader title="Popular Tracks" action="See all" />
 
-        <div className="divide-y divide-border rounded-xl border border-border">
-          {/* tracks.map((track, index) => (
-            <TrackItem
-              key={track.id}
-              position={index + 1}
-              track={track}
-              isFavorite={favorites.tracks.some(
-                (favorite) => favorite.id === track.id,
-              )}
-              onFavorite={() => toggleFavorite(track, "tracks")}
-            />
-          )) */}
+        <div className="mt-5">
+          {loading.tracks && <LoadingState message="Loading tracks..." />}
+
+          {error.tracks && <ErrorState message={error.tracks} />}
+
+          {!loading.tracks && !error.tracks && tracks && (
+            <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+              {tracks.map((track, index) => (
+                <TrackItem
+                  key={track.id}
+                  position={index + 1}
+                  track={track}
+                  isFavorite={favorites.tracks.some(
+                    (favorite) => favorite.id === track.id,
+                  )}
+                  onFavorite={() => toggleFavorite(track, "tracks")}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </section>

@@ -5,6 +5,7 @@ import type {
   LastFmArtistTopTracksResponse,
   LastFmGetArtistInfoResponse,
   LastFmTopArtistsResponse,
+  LastFmTopTracksResponse,
   LastFmTrackSearchResponse,
 } from "../types/lastfm";
 
@@ -141,4 +142,22 @@ export async function getTopArtists() {
   const data: LastFmTopArtistsResponse = await response.json();
 
   return data.artists.artist;
+}
+
+export async function getTopTracks() {
+  const url = new URL(BASE_URL);
+
+  url.searchParams.set("method", "chart.gettoptracks");
+  url.searchParams.set("api_key", API_KEY);
+  url.searchParams.set("format", "json");
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch top tracks");
+  }
+
+  const data: LastFmTopTracksResponse = await response.json();
+
+  return data.tracks.track;
 }
