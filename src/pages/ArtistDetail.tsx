@@ -1,28 +1,37 @@
 import { ArrowLeft, Headphones, Heart, Play } from "lucide-react";
 import ArtistCard from "../components/ui/ArtistCard";
 import { useNavigate, useOutletContext, useParams } from "react-router";
-import { getArtistInfo, getArtistTopTracks } from "../services/lastfm";
+import {
+  getArtistInfo,
+  getArtistTopAlbums,
+  getArtistTopTracks,
+} from "../services/lastfm";
 import { useEffect, useState } from "react";
 import type { ArtistDetail } from "../types/artist";
 import {
   mapLastFmArtistInfo,
+  mapLastFmArtistTopAlbums,
   mapLastFmArtistTopTracks,
 } from "../services/mappers";
-import type { FavoritesContext, Track } from "../types";
+import type { Album, FavoritesContext, Track } from "../types";
 import LoadingState from "../components/ui/LoadingState";
 import ErrorState from "../components/ui/ErrorState";
 import TrackItem from "../components/ui/TrackItem";
+import AlbumCard from "../components/ui/AlbumCard";
 
 export default function ArtistDetail() {
   const [artist, setArtist] = useState<ArtistDetail | null>(null);
   const [tracks, setTracks] = useState<Track[] | null>(null);
+  const [albums, setAlbums] = useState<Album[] | null>(null);
   const [loading, setLoading] = useState({
     artist: false,
     tracks: false,
+    albums: false,
   });
   const [error, setError] = useState({
     artist: "",
     tracks: "",
+    albums: "",
   });
 
   const { identifier } = useParams<{ identifier: string }>();
@@ -115,7 +124,42 @@ export default function ArtistDetail() {
       }
     }
 
+    async function loadArtistTopAlbums() {
+      if (!identifier) {
+        return;
+      }
+
+      setLoading((prev) => ({
+        ...prev,
+        albums: true,
+      }));
+
+      setError((prev) => ({
+        ...prev,
+        albums: "",
+      }));
+
+      try {
+        const data = await getArtistTopAlbums(identifier);
+
+        const albums = mapLastFmArtistTopAlbums(data);
+
+        setAlbums(albums.slice(0, 10));
+      } catch {
+        setError((prev) => ({
+          ...prev,
+          albums: "Failed to fetch artist top albums",
+        }));
+      } finally {
+        setLoading((prev) => ({
+          ...prev,
+          albums: false,
+        }));
+      }
+    }
+
     loadArtistTopTracks();
+    loadArtistTopAlbums();
   }, [artist, identifier]);
 
   if (loading.artist) {
@@ -217,7 +261,7 @@ export default function ArtistDetail() {
         </div>
       </section>
 
-      <section className="mt-8 grid grid-cols-1  sm:grid-cols-2 gap-4 md:max-w-xl">
+      <section className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-xl">
         <div className="rounded-xl border border-border bg-surface p-5">
           <div className="flex items-center gap-2 text-muted-text">
             <Headphones size={17} />
@@ -270,6 +314,31 @@ export default function ArtistDetail() {
                     (favorite) => favorite.id === track.id,
                   )}
                   onFavorite={() => toggleFavorite(track, "tracks")}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold text-primary-text">Top Albums</h2>
+
+        <div className="mt-5">
+          {loading.albums && <LoadingState message="Loading albums..." />}
+
+          {error.albums && <ErrorState message={error.albums} />}
+
+          {!loading.albums && !error.albums && albums && (
+            <div className="scrollbar-dark flex gap-5 overflow-x-auto pb-2">
+              {albums.map((album) => (
+                <AlbumCard
+                  key={album.id}
+                  album={album}
+                  isFavorite={favorites.albums.some(
+                    (favorite) => favorite.id === album.id,
+                  )}
+                  onFavorite={() => toggleFavorite(album, "albums")}
                 />
               ))}
             </div>

@@ -137,3 +137,36 @@ export interface LastFmArtistTopTracksResponse {
     track: LastFmTopTrack[];
   };
 }
+
+interface LastFmTopAlbumArtist {
+  mbid: string;
+  name: string;
+  url: string;
+}
+
+interface LastFmTopAlbumAttributes {
+  rank: string;
+}
+
+export interface LastFmTopAlbum {
+  "@attr": LastFmTopAlbumAttributes;
+  artist: LastFmTopAlbumArtist;
+  image: LastFmImage[];
+  mbid: string;
+  name: string;
+  playcount: string;
+  url: string;
+}
+
+export interface LastFmArtistTopAlbumsResponse {
+  topalbums: {
+    "@attr": {
+      artist: string;
+      page: string;
+      perPage: string;
+      total: string;
+      totalPages: string;
+    };
+    album: LastFmTopAlbum[];
+  };
+}
