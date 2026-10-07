@@ -6,105 +6,55 @@ import TrackItem from "../components/ui/TrackItem";
 import type { Album, Artist, Track } from "../types";
 import { useOutletContext } from "react-router";
 import type { FavoritesContext } from "../types/favorite";
-import { searchArtists } from "../services/lastfm";
-
-const artists: Artist[] = [
-  {
-    id: "1",
-    name: "Ariana Grande",
-    genre: "Pop",
-    image: "URL_DE_IMAGEN",
-  },
-  {
-    id: "2",
-    name: "The Weeknd",
-    genre: "R&B",
-    image: "URL_DE_IMAGEN",
-  },
-  {
-    id: "3",
-    name: "Dua Lipa",
-    genre: "Pop",
-    image: "URL_DE_IMAGEN",
-  },
-  {
-    id: "4",
-    name: "Frank Ocean",
-    genre: "R&B",
-    image: "URL_DE_IMAGEN",
-  },
-];
-
-const albums: Album[] = [
-  {
-    id: "1",
-    title: "Eternal Sunshine",
-    artist: "Ariana Grande",
-    year: 2024,
-    image: "URL_DE_IMAGEN",
-  },
-  {
-    id: "2",
-    title: "Hurry Up Tomorrow",
-    artist: "The Weeknd",
-    year: 2025,
-    image: "URL_DE_IMAGEN",
-  },
-  {
-    id: "3",
-    title: "Future Nostalgia",
-    artist: "Dua Lipa",
-    year: 2020,
-    image: "URL_DE_IMAGEN",
-  },
-  {
-    id: "4",
-    title: "Blonde",
-    artist: "Frank Ocean",
-    year: 2016,
-    image: "URL_DE_IMAGEN",
-  },
-];
-
-const tracks: Track[] = [
-  {
-    id: "1",
-    title: "we can't be friends",
-    artist: "Ariana Grande",
-    duration: "3:48",
-  },
-  {
-    id: "2",
-    title: "Blinding Lights",
-    artist: "The Weeknd",
-    duration: "3:20",
-  },
-  {
-    id: "3",
-    title: "Houdini",
-    artist: "Dua Lipa",
-    duration: "3:05",
-  },
-  {
-    id: "4",
-    title: "Pink + White",
-    artist: "Frank Ocean",
-    duration: "3:04",
-  },
-  {
-    id: "5",
-    title: "Supercut",
-    artist: "Lorde",
-    duration: "4:11",
-  },
-];
+import { getTopArtists } from "../services/lastfm";
+import { useEffect, useState } from "react";
+import { mapLastFmArtist } from "../services/mappers";
+import LoadingState from "../components/ui/LoadingState";
+import ErrorState from "../components/ui/ErrorState";
 
 export default function Home() {
   const { favorites, toggleFavorite } = useOutletContext<FavoritesContext>();
-
-  searchArtists("cher").then((data) => {
-    console.log(data);
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [loading, setLoading] = useState({
+    artists: false,
   });
+  const [error, setError] = useState({
+    artists: "",
+  });
+
+  useEffect(() => {
+    async function fetchTopArtists() {
+      setLoading((prev) => ({
+        ...prev,
+        artists: true,
+      }));
+
+      setError((prev) => ({
+        ...prev,
+        artists: "",
+      }));
+
+      try {
+        const artists = await getTopArtists();
+
+        const mappedArtists = artists.map(mapLastFmArtist).slice(0, 15);
+
+        setArtists(mappedArtists);
+      } catch {
+        setError((prev) => ({
+          ...prev,
+          artists: "Failed to get top artists",
+        }));
+      } finally {
+        setLoading((prev) => ({
+          ...prev,
+          artists: false,
+        }));
+      }
+    }
+
+    fetchTopArtists();
+  }, []);
 
   return (
     <section className="px-5 py-6 md:px-8 md:py-8">
@@ -135,19 +85,27 @@ export default function Home() {
       </div>
 
       <section className="mt-10">
-        <SectionHeader title="Trending Artists" action="See all" />
+        <SectionHeader title="Popular Artists" action="See all" />
 
-        <div className="flex gap-6 overflow-x-auto pb-2">
-          {artists.map((artist) => (
-            <ArtistCard
-              key={artist.id}
-              artist={artist}
-              isFavorite={favorites.artists.some(
-                (favorite) => favorite.id === artist.id,
-              )}
-              onFavorite={() => toggleFavorite(artist, "artists")}
-            />
-          ))}
+        <div className="mt-5">
+          {loading.artists && <LoadingState message="Loading artists..." />}
+
+          {error.artists && <ErrorState message={error.artists} />}
+
+          {!loading.artists && !error.artists && artists && (
+            <div className="flex gap-6 overflow-x-auto pb-2 scrollbar-dark">
+              {artists.map((artist) => (
+                <ArtistCard
+                  key={artist.id}
+                  artist={artist}
+                  isFavorite={favorites.artists.some(
+                    (favorite) => favorite.id === artist.id,
+                  )}
+                  onFavorite={() => toggleFavorite(artist, "artists")}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -155,7 +113,7 @@ export default function Home() {
         <SectionHeader title="Popular Albums" action="See all" />
 
         <div className="flex gap-5 overflow-x-auto pb-2">
-          {albums.map((album) => (
+          {/* albums.map((album) => (
             <AlbumCard
               key={album.id}
               album={album}
@@ -164,7 +122,7 @@ export default function Home() {
               )}
               onFavorite={() => toggleFavorite(album, "albums")}
             />
-          ))}
+          )) */}
         </div>
       </section>
 
@@ -172,7 +130,7 @@ export default function Home() {
         <SectionHeader title="Popular Tracks" action="See all" />
 
         <div className="divide-y divide-border rounded-xl border border-border">
-          {tracks.map((track, index) => (
+          {/* tracks.map((track, index) => (
             <TrackItem
               key={track.id}
               position={index + 1}
@@ -182,7 +140,7 @@ export default function Home() {
               )}
               onFavorite={() => toggleFavorite(track, "tracks")}
             />
-          ))}
+          )) */}
         </div>
       </section>
     </section>

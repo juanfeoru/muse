@@ -170,3 +170,15 @@ export interface LastFmArtistTopAlbumsResponse {
     album: LastFmTopAlbum[];
   };
 }
+
+export interface LastFmTopArtistsResponse {
+  artists: {
+    "@attr": {
+      page: string;
+      perPage: string;
+      total: string;
+      totalPages: string;
+    };
+    artist: LastFmArtist[];
+  };
+}
