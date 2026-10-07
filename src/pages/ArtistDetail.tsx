@@ -1,18 +1,29 @@
 import { ArrowLeft, Headphones, Heart, Play } from "lucide-react";
 import ArtistCard from "../components/ui/ArtistCard";
 import { useNavigate, useOutletContext, useParams } from "react-router";
-import { getArtistInfo } from "../services/lastfm";
+import { getArtistInfo, getArtistTopTracks } from "../services/lastfm";
 import { useEffect, useState } from "react";
 import type { ArtistDetail } from "../types/artist";
-import { maplastFmArtistInfo } from "../services/mappers";
-import type { FavoritesContext } from "../types";
+import {
+  mapLastFmArtistInfo,
+  mapLastFmArtistTopTracks,
+} from "../services/mappers";
+import type { FavoritesContext, Track } from "../types";
 import LoadingState from "../components/ui/LoadingState";
 import ErrorState from "../components/ui/ErrorState";
+import TrackItem from "../components/ui/TrackItem";
 
 export default function ArtistDetail() {
   const [artist, setArtist] = useState<ArtistDetail | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [tracks, setTracks] = useState<Track[] | null>(null);
+  const [loading, setLoading] = useState({
+    artist: false,
+    tracks: false,
+  });
+  const [error, setError] = useState({
+    artist: "",
+    tracks: "",
+  });
 
   const { identifier } = useParams<{ identifier: string }>();
 
@@ -22,36 +33,96 @@ export default function ArtistDetail() {
 
   useEffect(() => {
     async function loadArtistInfo() {
-      setLoading(true);
-      setError(null);
+      setLoading((prev) => ({
+        ...prev,
+        artist: true,
+      }));
+      setError((prev) => ({
+        ...prev,
+        artist: "",
+      }));
 
       if (!identifier) {
-        setError("Artist not found");
-        setLoading(false);
+        setLoading((prev) => ({
+          ...prev,
+          artist: false,
+        }));
+        setError((prev) => ({
+          ...prev,
+          artist: "Artist not found",
+        }));
         return;
       }
 
       try {
         const data = await getArtistInfo(identifier);
 
-        const artist = maplastFmArtistInfo(data);
+        const artist = mapLastFmArtistInfo(data);
 
         setArtist(artist);
       } catch {
-        setError("Failed to fetch artist info");
+        setError((prev) => ({
+          ...prev,
+          artist: "Failed to fetch artist info",
+        }));
       } finally {
-        setLoading(false);
+        setLoading((prev) => ({
+          ...prev,
+          artist: false,
+        }));
       }
     }
 
     loadArtistInfo();
   }, [identifier]);
 
-  if (loading) {
+  useEffect(() => {
+    if (!artist) {
+      return;
+    }
+
+    async function loadArtistTopTracks() {
+      if (!identifier) {
+        return;
+      }
+
+      setLoading((prev) => ({
+        ...prev,
+        tracks: true,
+      }));
+
+      setError((prev) => ({
+        ...prev,
+        tracks: "",
+      }));
+
+      try {
+        const data = await getArtistTopTracks(identifier);
+
+        const tracks = mapLastFmArtistTopTracks(data);
+
+        setTracks(tracks.slice(0, 10));
+      } catch {
+        setError((prev) => ({
+          ...prev,
+          tracks: "Failed to fetch artist top tracks",
+        }));
+      } finally {
+        setLoading((prev) => ({
+          ...prev,
+          tracks: false,
+        }));
+      }
+    }
+
+    loadArtistTopTracks();
+  }, [artist, identifier]);
+
+  if (loading.artist) {
     return <LoadingState message="Loading artist..." />;
   }
 
-  if (error || !artist) {
+  if (error.artist || !artist) {
     return (
       <section className="px-5 py-6 md:px-8 md:py-8">
         <button
@@ -64,7 +135,7 @@ export default function ArtistDetail() {
         </button>
 
         <div className="mt-8">
-          <ErrorState message={error ?? "Artist not found"} />
+          <ErrorState message={error.artist ?? "Artist not found"} />
         </div>
       </section>
     );
@@ -143,10 +214,10 @@ export default function ArtistDetail() {
               {isFavorite ? "Remove from favorites" : "Add to favorites"}
             </button>
           </div>
-        </div>{" "}
+        </div>
       </section>
 
-      <section className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 md:max-w-xl">
+      <section className="mt-8 grid grid-cols-1  sm:grid-cols-2 gap-4 md:max-w-xl">
         <div className="rounded-xl border border-border bg-surface p-5">
           <div className="flex items-center gap-2 text-muted-text">
             <Headphones size={17} />
@@ -178,6 +249,32 @@ export default function ArtistDetail() {
         <p className="mt-4 max-w-3xl leading-7 text-secondary-text">
           {artist.bio}
         </p>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold text-primary-text">Top Tracks</h2>
+
+        <div className="mt-5">
+          {loading.tracks && <LoadingState message="Loading tracks..." />}
+
+          {error.tracks && <ErrorState message={error.tracks} />}
+
+          {!loading.tracks && !error.tracks && tracks && (
+            <div className="overflow-hidden rounded-xl border border-border bg-surface">
+              {tracks.map((track, index) => (
+                <TrackItem
+                  key={track.id}
+                  track={track}
+                  position={index + 1}
+                  isFavorite={favorites.tracks.some(
+                    (favorite) => favorite.id === track.id,
+                  )}
+                  onFavorite={() => toggleFavorite(track, "tracks")}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </section>
 
       <section className="mt-12">

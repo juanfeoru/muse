@@ -102,3 +102,38 @@ export interface LastFmArtistInfo {
 export interface LastFmGetArtistInfoResponse {
   artist: LastFmArtistInfo;
 }
+
+interface LastFmTopTrackArtist {
+  mbid: string;
+  name: string;
+  url: string;
+}
+
+interface LastFmTopTrackAttributes {
+  rank: string;
+}
+
+export interface LastFmTopTrack {
+  "@attr": LastFmTopTrackAttributes;
+  artist: LastFmTopTrackArtist;
+  image: LastFmImage[];
+  listeners: string;
+  mbid: string;
+  name: string;
+  playcount: string;
+  streamable: string;
+  url: string;
+}
+
+export interface LastFmArtistTopTracksResponse {
+  toptracks: {
+    "@attr": {
+      artist: string;
+      page: string;
+      perPage: string;
+      totalPages: string;
+      total: string;
+    };
+    track: LastFmTopTrack[];
+  };
+}
