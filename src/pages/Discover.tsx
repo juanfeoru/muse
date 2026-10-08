@@ -21,6 +21,7 @@ import {
   mapLastFmTopAlbum,
   mapLastFmTopTag,
 } from "../services/mappers";
+import ScrollToTopButton from "../components/ui/ScrollToTopButton";
 
 export default function Discover() {
   const [selectedGenre, setSelectedGenre] = useState<string>();
@@ -199,6 +200,8 @@ export default function Discover() {
           )}
         </div>
       </section>
+
+      <ScrollToTopButton />
     </section>
   );
 }
