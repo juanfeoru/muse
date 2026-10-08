@@ -122,7 +122,7 @@ export default function Search() {
           value={query}
           onChange={(event) => handleQueryChange(event.target.value)}
           placeholder="Search for an artist, album or track..."
-          className="w-full rounded-xl border border-border bg-surface py-3 pl-11 pr-11 text-primary-text outline-none placeholder:text-muted-text focus:border-accent"
+          className="w-full rounded-xl border border-border bg-surface py-3 pl-11 pr-11 text-primary-text placeholder:text-muted-text focus:border-accent"
         />
 
         {query && (
