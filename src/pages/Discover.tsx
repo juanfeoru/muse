@@ -14,6 +14,7 @@ const genres = [
 
 const albums = [
   {
+    id: "eternal-sunshine",
     title: "Eternal Sunshine",
     artist: "Ariana Grande",
     genre: "Pop",
@@ -21,6 +22,7 @@ const albums = [
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "future-nostalgia",
     title: "Future Nostalgia",
     artist: "Dua Lipa",
     genre: "Pop",
@@ -28,6 +30,7 @@ const albums = [
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "blonde",
     title: "Blonde",
     artist: "Frank Ocean",
     genre: "R&B",
@@ -35,6 +38,7 @@ const albums = [
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "damn",
     title: "DAMN.",
     artist: "Kendrick Lamar",
     genre: "Hip-Hop",
@@ -42,6 +46,7 @@ const albums = [
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "currents",
     title: "Currents",
     artist: "Tame Impala",
     genre: "Indie",
@@ -49,6 +54,7 @@ const albums = [
     image: "URL_DE_IMAGEN",
   },
   {
+    id: "discovery",
     title: "Discovery",
     artist: "Daft Punk",
     genre: "Electronic",
@@ -87,7 +93,7 @@ export default function Discover() {
             key={genre}
             type="button"
             onClick={() => setSelectedGenre(genre)}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
+            className={`shrink-0 cursor-pointer rounded-full px-4 py-2 text-sm font-medium transition-colors ${
               selectedGenre === genre
                 ? "bg-accent text-background"
                 : "bg-surface text-secondary-text hover:bg-surface-hover hover:text-primary-text"
@@ -108,11 +114,10 @@ export default function Discover() {
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {filteredAlbums.map((album) => (
             <AlbumCard
-              key={album.title}
-              title={album.title}
-              artist={album.artist}
-              year={album.year}
-              image={album.image}
+              key={album.id}
+              album={album}
+              isFavorite={false}
+              onFavorite={() => {}}
             />
           ))}
         </div>
