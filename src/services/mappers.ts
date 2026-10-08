@@ -91,7 +91,6 @@ export function mapLastFmChartTrack(track: LastFmChartTrack): Track {
     title: track.name,
     artist: track.artist.name,
     image: pickImage(track.image),
-    duration: track.duration,
     listeners: Number(track.listeners),
   };
 }

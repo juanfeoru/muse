@@ -41,12 +41,6 @@ export default function TrackItem({
           className={isFavorite ? "fill-accent text-accent" : ""}
         />
       </button>
-
-      {track.duration && (
-        <span className="w-10 text-right text-sm text-muted-text">
-          {track.duration}
-        </span>
-      )}
     </div>
   );
 }
