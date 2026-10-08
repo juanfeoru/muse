@@ -4,35 +4,38 @@ import type {
   LastFmArtist,
   LastFmArtistInfo,
   LastFmChartTrack,
+  LastFmImage,
   LastFmTopAlbum,
   LastFmTopTrack,
   LastFmTrack,
 } from "../types/lastfm";
 import { stripHtml } from "../utils/stripHtml";
 
-export function mapLastFmArtist(artist: LastFmArtist): Artist {
-  const image =
-    artist.image.find((image) => image.size === "extralarge")?.["#text"] ||
-    artist.image.find((image) => image["#text"] !== "")?.["#text"];
+function pickImage(
+  images: LastFmImage[],
+  size = "extralarge",
+): string | undefined {
+  return (
+    images.find((image) => image.size === size)?.["#text"] ||
+    images.find((image) => image["#text"] !== "")?.["#text"]
+  );
+}
 
+export function mapLastFmArtist(artist: LastFmArtist): Artist {
   return {
     id: artist.mbid || artist.name,
     name: artist.name,
-    image,
+    image: pickImage(artist.image),
     listeners: Number(artist.listeners),
   };
 }
 
 export function mapLastFmAlbum(album: LastFmAlbum): Album {
-  const image =
-    album.image.find((image) => image.size === "extralarge")?.["#text"] ||
-    album.image.find((image) => image["#text"] !== "")?.["#text"];
-
   return {
     id: album.mbid || `${album.artist}-${album.name}`,
     title: album.name,
     artist: album.artist,
-    image,
+    image: pickImage(album.image),
   };
 }
 
@@ -48,85 +51,56 @@ export function mapLastFmTrack(track: LastFmTrack): Track {
 export function mapLastFmArtistInfo(
   artistInfo: LastFmArtistInfo,
 ): ArtistDetail {
-  const image =
-    artistInfo.image.find((image) => image.size === "extralarge")?.["#text"] ||
-    artistInfo.image.find((image) => image["#text"] !== "")?.["#text"];
-
   return {
     bio: stripHtml(artistInfo.bio.summary),
-    image,
+    image: pickImage(artistInfo.image),
     id: artistInfo.mbid || artistInfo.name,
     name: artistInfo.name,
     similar: artistInfo.similar.artist.map((artist) => ({
-      image:
-        artist.image.find((image) => image.size === "extralarge")?.["#text"] ||
-        artist.image.find((image) => image["#text"] !== "")?.["#text"] ||
-        "",
+      image: pickImage(artist.image) || "",
       name: artist.name,
     })),
-    listeners: artistInfo.stats.listeners,
-    playcount: artistInfo.stats.playcount,
+    listeners: Number(artistInfo.stats.listeners),
+    playcount: Number(artistInfo.stats.playcount),
     tags: artistInfo.tags.tag.map((tag) => tag.name),
   };
 }
 
 export function mapLastFmArtistTopTracks(tracks: LastFmTopTrack[]): Track[] {
-  return tracks.map((track) => {
-    const image =
-      track.image.find((image) => image.size === "extralarge")?.["#text"] ||
-      track.image.find((image) => image["#text"] !== "")?.["#text"];
-
-    return {
-      id: track.mbid || `${track.artist.name}-${track.name}`,
-      title: track.name,
-      artist: track.artist.name,
-      image,
-      listeners: Number(track.listeners),
-    };
-  });
+  return tracks.map((track) => ({
+    id: track.mbid || `${track.artist.name}-${track.name}`,
+    title: track.name,
+    artist: track.artist.name,
+    image: pickImage(track.image),
+    listeners: Number(track.listeners),
+  }));
 }
 
 export function mapLastFmArtistTopAlbums(albums: LastFmTopAlbum[]): Album[] {
-  return albums.map((album) => {
-    const image =
-      album.image.find((image) => image.size === "extralarge")?.["#text"] ||
-      album.image.find((image) => image["#text"] !== "")?.["#text"] ||
-      "";
-
-    return {
-      id: album.mbid || `${album.artist.name}-${album.name}`,
-      title: album.name,
-      artist: album.artist.name,
-      image,
-    };
-  });
+  return albums.map((album) => ({
+    id: album.mbid || `${album.artist.name}-${album.name}`,
+    title: album.name,
+    artist: album.artist.name,
+    image: pickImage(album.image) || "",
+  }));
 }
 
 export function mapLastFmChartTrack(track: LastFmChartTrack): Track {
-  const image =
-    track.image.find((image) => image.size === "extralarge")?.["#text"] ||
-    track.image.find((image) => image["#text"] !== "")?.["#text"];
-
   return {
     id: track.mbid || `${track.artist.name}-${track.name}`,
     title: track.name,
     artist: track.artist.name,
-    image,
+    image: pickImage(track.image),
     duration: track.duration,
     listeners: Number(track.listeners),
   };
 }
 
 export function mapLastFmTopAlbum(album: LastFmTopAlbum): Album {
-  const image =
-    album.image.find((image) => image.size === "extralarge")?.["#text"] ||
-    album.image.find((image) => image["#text"] !== "")?.["#text"] ||
-    "";
-
   return {
     id: album.mbid || `${album.artist.name}-${album.name}`,
     title: album.name,
     artist: album.artist.name,
-    image,
+    image: pickImage(album.image) || "",
   };
 }

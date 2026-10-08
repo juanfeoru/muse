@@ -7,17 +7,17 @@ export interface Artist {
 }
 
 export interface ArtistDetail {
-  bio: string;
-  image?: string;
   id: string;
   name: string;
-  similar: SimilarArtist[];
-  listeners?: string;
-  playcount: string;
+  bio: string;
+  image?: string;
+  listeners: number;
+  playcount: number;
   tags: string[];
+  similar: SimilarArtist[];
 }
 
 export interface SimilarArtist {
-  image: string;
   name: string;
+  image: string;
 }

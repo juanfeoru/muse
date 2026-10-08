@@ -1,6 +1,17 @@
-interface LastFmImage {
+export interface LastFmImage {
   size: string;
   "#text": string;
+}
+
+interface LastFmPagination {
+  page: string;
+  perPage: string;
+  total: string;
+  totalPages: string;
+}
+
+interface LastFmRankAttributes {
+  rank: string;
 }
 
 export interface LastFmArtist {
@@ -109,12 +120,8 @@ interface LastFmTopTrackArtist {
   url: string;
 }
 
-interface LastFmTopTrackAttributes {
-  rank: string;
-}
-
 export interface LastFmTopTrack {
-  "@attr": LastFmTopTrackAttributes;
+  "@attr": LastFmRankAttributes;
   artist: LastFmTopTrackArtist;
   image: LastFmImage[];
   listeners: string;
@@ -127,12 +134,8 @@ export interface LastFmTopTrack {
 
 export interface LastFmArtistTopTracksResponse {
   toptracks: {
-    "@attr": {
+    "@attr": LastFmPagination & {
       artist: string;
-      page: string;
-      perPage: string;
-      totalPages: string;
-      total: string;
     };
     track: LastFmTopTrack[];
   };
@@ -144,12 +147,8 @@ interface LastFmTopAlbumArtist {
   url: string;
 }
 
-interface LastFmTopAlbumAttributes {
-  rank: string;
-}
-
 export interface LastFmTopAlbum {
-  "@attr": LastFmTopAlbumAttributes;
+  "@attr": LastFmRankAttributes;
   artist: LastFmTopAlbumArtist;
   image: LastFmImage[];
   mbid: string;
@@ -160,12 +159,8 @@ export interface LastFmTopAlbum {
 
 export interface LastFmArtistTopAlbumsResponse {
   topalbums: {
-    "@attr": {
+    "@attr": LastFmPagination & {
       artist: string;
-      page: string;
-      perPage: string;
-      total: string;
-      totalPages: string;
     };
     album: LastFmTopAlbum[];
   };
@@ -173,12 +168,7 @@ export interface LastFmArtistTopAlbumsResponse {
 
 export interface LastFmTopArtistsResponse {
   artists: {
-    "@attr": {
-      page: string;
-      perPage: string;
-      total: string;
-      totalPages: string;
-    };
+    "@attr": LastFmPagination;
     artist: LastFmArtist[];
   };
 }
@@ -200,24 +190,15 @@ export interface LastFmChartTrack {
 
 export interface LastFmTopTracksResponse {
   tracks: {
-    "@attr": {
-      page: string;
-      perPage: string;
-      total: string;
-      totalPages: string;
-    };
+    "@attr": LastFmPagination;
     track: LastFmChartTrack[];
   };
 }
 
 export interface LastFmTopAlbumsResponse {
   albums: {
-    "@attr": {
-      page: string;
-      perPage: string;
+    "@attr": LastFmPagination & {
       tag: string;
-      total: string;
-      totalPages: string;
     };
     album: LastFmTopAlbum[];
   };
