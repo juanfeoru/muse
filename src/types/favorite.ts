@@ -7,11 +7,3 @@ export interface FavoriteState {
   albums: Album[];
   tracks: Track[];
 }
-
-export interface FavoritesContext {
-  favorites: FavoriteState;
-  toggleFavorite: (
-    item: Artist | Album | Track,
-    type: "artists" | "albums" | "tracks",
-  ) => void;
-}

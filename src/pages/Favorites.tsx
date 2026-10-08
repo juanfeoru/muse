@@ -2,11 +2,10 @@ import ArtistCard from "../components/ui/ArtistCard";
 import AlbumCard from "../components/ui/AlbumCard";
 import EmptyState from "../components/ui/EmptyState";
 import TrackItem from "../components/ui/TrackItem";
-import { useOutletContext } from "react-router";
-import type { FavoritesContext } from "../types/favorite";
+import { useFavoritesContext } from "../context/useFavoritesContext";
 
 export default function Favorites() {
-  const { favorites, toggleFavorite } = useOutletContext<FavoritesContext>();
+  const { favorites, toggleFavorite } = useFavoritesContext();
 
   return (
     <section className="px-5 py-6 md:px-8 md:py-8">

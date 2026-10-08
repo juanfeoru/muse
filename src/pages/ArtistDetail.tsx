@@ -1,6 +1,6 @@
 import { ArrowLeft, Headphones, Heart, Play } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useOutletContext, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 import ArtistCard from "../components/ui/ArtistCard";
 import TrackItem from "../components/ui/TrackItem";
@@ -21,13 +21,19 @@ import {
 } from "../services/mappers";
 
 import type { ArtistDetail } from "../types/artist";
-import type { Album, FavoritesContext, Track } from "../types";
+import type { Album, Track } from "../types";
+import { useFavoritesContext } from "../context/useFavoritesContext";
 
 export default function ArtistDetail() {
   const { identifier } = useParams<{ identifier: string }>();
   const navigate = useNavigate();
 
-  const { favorites, toggleFavorite } = useOutletContext<FavoritesContext>();
+  const {
+    favoriteArtistIds,
+    favoriteAlbumIds,
+    favoriteTrackIds,
+    toggleFavorite,
+  } = useFavoritesContext();
 
   const {
     data: artist,
@@ -94,9 +100,7 @@ export default function ArtistDetail() {
     );
   }
 
-  const isFavorite = favorites.artists.some(
-    (favorite) => favorite.id === artist.id,
-  );
+  const isFavorite = favoriteArtistIds.has(artist.id);
 
   return (
     <section className="px-5 py-6 md:px-8 md:py-8">
@@ -153,7 +157,7 @@ export default function ArtistDetail() {
                     id: artist.id,
                     name: artist.name,
                     image: artist.image,
-                    listeners: Number(artist.listeners),
+                    listeners: artist.listeners,
                   },
                   "artists",
                 )
@@ -180,7 +184,7 @@ export default function ArtistDetail() {
           </div>
 
           <p className="mt-2 text-2xl font-semibold text-primary-text">
-            {Number(artist.listeners).toLocaleString()}
+            {artist.listeners.toLocaleString()}
           </p>
         </div>
 
@@ -192,7 +196,7 @@ export default function ArtistDetail() {
           </div>
 
           <p className="mt-2 text-2xl font-semibold text-primary-text">
-            {Number(artist.playcount).toLocaleString()}
+            {artist.playcount.toLocaleString()}
           </p>
         </div>
       </section>
@@ -222,9 +226,7 @@ export default function ArtistDetail() {
                   key={track.id}
                   track={track}
                   position={index + 1}
-                  isFavorite={favorites.tracks.some(
-                    (favorite) => favorite.id === track.id,
-                  )}
+                  isFavorite={favoriteTrackIds.has(track.id)}
                   onFavorite={() => toggleFavorite(track, "tracks")}
                 />
               ))}
@@ -249,9 +251,7 @@ export default function ArtistDetail() {
                 <AlbumCard
                   key={album.id}
                   album={album}
-                  isFavorite={favorites.albums.some(
-                    (favorite) => favorite.id === album.id,
-                  )}
+                  isFavorite={favoriteAlbumIds.has(album.id)}
                   onFavorite={() => toggleFavorite(album, "albums")}
                 />
               ))}
@@ -278,9 +278,7 @@ export default function ArtistDetail() {
               <ArtistCard
                 key={similarArtist.name}
                 artist={similarArtistData}
-                isFavorite={favorites.artists.some(
-                  (favorite) => favorite.id === similarArtistData.id,
-                )}
+                isFavorite={favoriteArtistIds.has(similarArtistData.id)}
                 onFavorite={() => toggleFavorite(similarArtistData, "artists")}
               />
             );

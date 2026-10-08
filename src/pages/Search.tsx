@@ -1,7 +1,6 @@
 import { Search as SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useOutletContext } from "react-router";
 
 import ArtistCard from "../components/ui/ArtistCard";
 import AlbumCard from "../components/ui/AlbumCard";
@@ -18,7 +17,8 @@ import {
   mapLastFmTrack,
 } from "../services/mappers";
 
-import type { Album, Artist, FavoritesContext, Track } from "../types";
+import type { Album, Artist, Track } from "../types";
+import { useFavoritesContext } from "../context/useFavoritesContext";
 
 function useDebounce<T>(value: T, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -35,7 +35,12 @@ function useDebounce<T>(value: T, delay: number) {
 }
 
 export default function Search() {
-  const { favorites, toggleFavorite } = useOutletContext<FavoritesContext>();
+  const {
+    favoriteArtistIds,
+    favoriteAlbumIds,
+    favoriteTrackIds,
+    toggleFavorite,
+  } = useFavoritesContext();
 
   const [query, setQuery] = useState("");
 
@@ -141,9 +146,7 @@ export default function Search() {
                     <ArtistCard
                       key={artist.id}
                       artist={artist}
-                      isFavorite={favorites.artists.some(
-                        (favorite) => favorite.id === artist.id,
-                      )}
+                      isFavorite={favoriteArtistIds.has(artist.id)}
                       onFavorite={() => toggleFavorite(artist, "artists")}
                     />
                   ))}
@@ -173,9 +176,7 @@ export default function Search() {
                     <AlbumCard
                       key={album.id}
                       album={album}
-                      isFavorite={favorites.albums.some(
-                        (favorite) => favorite.id === album.id,
-                      )}
+                      isFavorite={favoriteAlbumIds.has(album.id)}
                       onFavorite={() => toggleFavorite(album, "albums")}
                     />
                   ))}
@@ -206,9 +207,7 @@ export default function Search() {
                       key={track.id}
                       position={index + 1}
                       track={track}
-                      isFavorite={favorites.tracks.some(
-                        (favorite) => favorite.id === track.id,
-                      )}
+                      isFavorite={favoriteTrackIds.has(track.id)}
                       onFavorite={() => toggleFavorite(track, "tracks")}
                     />
                   ))}
