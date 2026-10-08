@@ -35,8 +35,8 @@ export default function ArtistDetail() {
     error: artistError,
   } = useQuery<ArtistDetail>({
     queryKey: ["artist", identifier],
-    queryFn: async () => {
-      const data = await getArtistInfo(identifier!);
+    queryFn: async ({ signal }) => {
+      const data = await getArtistInfo(identifier!, signal);
 
       return mapLastFmArtistInfo(data);
     },
@@ -49,8 +49,8 @@ export default function ArtistDetail() {
     error: tracksError,
   } = useQuery<Track[]>({
     queryKey: ["artist", identifier, "tracks"],
-    queryFn: async () => {
-      const data = await getArtistTopTracks(identifier!);
+    queryFn: async ({ signal }) => {
+      const data = await getArtistTopTracks(identifier!, signal);
 
       return mapLastFmArtistTopTracks(data).slice(0, 10);
     },
@@ -63,8 +63,8 @@ export default function ArtistDetail() {
     error: albumsError,
   } = useQuery<Album[]>({
     queryKey: ["artist", identifier, "albums"],
-    queryFn: async () => {
-      const data = await getArtistTopAlbums(identifier!);
+    queryFn: async ({ signal }) => {
+      const data = await getArtistTopAlbums(identifier!, signal);
 
       return mapLastFmArtistTopAlbums(data).slice(0, 10);
     },

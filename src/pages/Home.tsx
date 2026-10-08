@@ -32,9 +32,8 @@ export default function Home() {
     error: artistsError,
   } = useQuery<Artist[]>({
     queryKey: ["topArtists"],
-    queryFn: async () => {
-      const artists = await getTopArtists();
-
+    queryFn: async ({ signal }) => {
+      const artists = await getTopArtists(signal);
       return artists.map(mapLastFmArtist).slice(0, 15);
     },
   });
@@ -45,8 +44,8 @@ export default function Home() {
     error: albumsError,
   } = useQuery<Album[]>({
     queryKey: ["topAlbums", selectedGenre],
-    queryFn: async () => {
-      const albums = await getTopAlbums(selectedGenre);
+    queryFn: async ({ signal }) => {
+      const albums = await getTopAlbums(selectedGenre, signal);
 
       return albums.map(mapLastFmTopAlbum).slice(0, 15);
     },
@@ -58,8 +57,8 @@ export default function Home() {
     error: tracksError,
   } = useQuery<Track[]>({
     queryKey: ["topTracks"],
-    queryFn: async () => {
-      const tracks = await getTopTracks();
+    queryFn: async ({ signal }) => {
+      const tracks = await getTopTracks(signal);
 
       return tracks.map(mapLastFmChartTrack).slice(0, 10);
     },

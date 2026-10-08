@@ -47,8 +47,8 @@ export default function Search() {
     error: artistsError,
   } = useQuery<Artist[]>({
     queryKey: ["search", "artists", debouncedQuery],
-    queryFn: async () => {
-      const artists = await searchArtists(debouncedQuery);
+    queryFn: async ({ signal }) => {
+      const artists = await searchArtists(debouncedQuery, signal);
 
       return artists
         .map(mapLastFmArtist)
@@ -63,8 +63,8 @@ export default function Search() {
     error: albumsError,
   } = useQuery<Album[]>({
     queryKey: ["search", "albums", debouncedQuery],
-    queryFn: async () => {
-      const albums = await searchAlbums(debouncedQuery);
+    queryFn: async ({ signal }) => {
+      const albums = await searchAlbums(debouncedQuery, signal);
 
       return albums.map(mapLastFmAlbum);
     },
@@ -77,8 +77,8 @@ export default function Search() {
     error: tracksError,
   } = useQuery<Track[]>({
     queryKey: ["search", "tracks", debouncedQuery],
-    queryFn: async () => {
-      const tracks = await searchTracks(debouncedQuery);
+    queryFn: async ({ signal }) => {
+      const tracks = await searchTracks(debouncedQuery, signal);
 
       return tracks
         .map(mapLastFmTrack)
