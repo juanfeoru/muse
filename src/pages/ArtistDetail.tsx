@@ -26,6 +26,11 @@ import { useFavoritesContext } from "../context/useFavoritesContext";
 
 export default function ArtistDetail() {
   const { identifier } = useParams<{ identifier: string }>();
+
+  const decodedIdentifier = identifier
+    ? decodeURIComponent(identifier)
+    : undefined;
+
   const navigate = useNavigate();
 
   const {
@@ -40,13 +45,13 @@ export default function ArtistDetail() {
     isLoading: isLoadingArtist,
     error: artistError,
   } = useQuery<ArtistDetail>({
-    queryKey: ["artist", identifier],
+    queryKey: ["artist", decodedIdentifier],
     queryFn: async ({ signal }) => {
-      const data = await getArtistInfo(identifier!, signal);
+      const data = await getArtistInfo(decodedIdentifier!, signal);
 
       return mapLastFmArtistInfo(data);
     },
-    enabled: Boolean(identifier),
+    enabled: Boolean(decodedIdentifier),
   });
 
   const {
@@ -54,13 +59,13 @@ export default function ArtistDetail() {
     isLoading: isLoadingTracks,
     error: tracksError,
   } = useQuery<Track[]>({
-    queryKey: ["artist", identifier, "tracks"],
+    queryKey: ["artist", decodedIdentifier, "tracks"],
     queryFn: async ({ signal }) => {
-      const data = await getArtistTopTracks(identifier!, signal);
+      const data = await getArtistTopTracks(decodedIdentifier!, signal);
 
       return mapLastFmArtistTopTracks(data).slice(0, 10);
     },
-    enabled: Boolean(identifier),
+    enabled: Boolean(decodedIdentifier),
   });
 
   const {
@@ -68,13 +73,13 @@ export default function ArtistDetail() {
     isLoading: isLoadingAlbums,
     error: albumsError,
   } = useQuery<Album[]>({
-    queryKey: ["artist", identifier, "albums"],
+    queryKey: ["artist", decodedIdentifier, "albums"],
     queryFn: async ({ signal }) => {
-      const data = await getArtistTopAlbums(identifier!, signal);
+      const data = await getArtistTopAlbums(decodedIdentifier!, signal);
 
       return mapLastFmArtistTopAlbums(data).slice(0, 10);
     },
-    enabled: Boolean(identifier),
+    enabled: Boolean(decodedIdentifier),
   });
 
   if (isLoadingArtist) {

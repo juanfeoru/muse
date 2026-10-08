@@ -16,7 +16,10 @@ export default function ArtistCard({
   return (
     <article className="group min-w-32">
       <div className="relative aspect-square overflow-hidden rounded-full bg-surface-hover">
-        <Link to={`/artist/${artist.name}`} aria-label={`View ${artist.name}`}>
+        <Link
+          to={`/artist/${encodeURIComponent(artist.name)}`}
+          aria-label={`View ${artist.name}`}
+        >
           {artist.image ? (
             <img
               src={artist.image}
@@ -48,7 +51,7 @@ export default function ArtistCard({
       </div>
 
       <Link
-        to={`/artist/${artist.name}`}
+        to={`/artist/${encodeURIComponent(artist.name)}`}
         className="mt-3 block text-center text-sm font-medium text-primary-text transition-colors hover:text-accent"
       >
         <span className="line-clamp-2">{artist.name}</span>
