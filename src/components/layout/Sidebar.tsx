@@ -4,25 +4,22 @@ import { NavLink } from "react-router";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) return;
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
+    const handleChange = () => {
+      setIsMobile(mediaQuery.matches);
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-
-    document.body.style.overflow = "hidden";
+    handleChange();
+    mediaQuery.addEventListener("change", handleChange);
 
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
+      mediaQuery.removeEventListener("change", handleChange);
     };
-  }, [isOpen]);
+  }, []);
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
@@ -67,7 +64,7 @@ export default function Sidebar() {
 
       <aside
         id="mobile-sidebar"
-        inert={!isOpen ? true : undefined}
+        inert={isMobile && !isOpen ? true : undefined}
         className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border bg-surface p-5 transition-transform duration-200 md:static md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}

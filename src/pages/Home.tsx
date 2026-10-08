@@ -107,7 +107,12 @@ export default function Home() {
           {artistsError && <ErrorState message="Failed to get top artists" />}
 
           {!isLoadingArtists && !artistsError && (
-            <div className="scrollbar-dark flex gap-6 overflow-x-auto pb-2">
+            <div
+              role="region"
+              aria-label="Popular artists"
+              tabIndex={0}
+              className="scrollbar-dark flex gap-6 overflow-x-auto pb-2"
+            >
               {artists.map((artist) => (
                 <ArtistCard
                   key={artist.id}
@@ -125,7 +130,12 @@ export default function Home() {
         <SectionHeader title="Popular Albums" action="See all" to="/discover" />
 
         <div className="mt-5">
-          <div className="scrollbar-dark flex gap-2 overflow-x-auto pb-2">
+          <div
+            role="region"
+            aria-label="Music genres"
+            tabIndex={0}
+            className="scrollbar-dark flex gap-2 overflow-x-auto pb-2"
+          >
             {["pop", "rock", "disco", "electronic", "hip-hop", "jazz"].map(
               (genre) => (
                 <button
@@ -143,14 +153,18 @@ export default function Home() {
               ),
             )}
           </div>
-
           <div className="mt-5">
             {isLoadingAlbums && <LoadingState message="Loading albums..." />}
 
             {albumsError && <ErrorState message="Failed to get top albums" />}
 
             {!isLoadingAlbums && !albumsError && (
-              <div className="scrollbar-dark flex gap-5 overflow-x-auto pb-2">
+              <div
+                role="region"
+                aria-label="Popular albums"
+                tabIndex={0}
+                className="scrollbar-dark flex gap-5 overflow-x-auto pb-2"
+              >
                 {albums.map((album) => (
                   <AlbumCard
                     key={album.id}
