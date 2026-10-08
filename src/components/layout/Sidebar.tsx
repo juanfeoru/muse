@@ -1,9 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Compass, Heart, Home, Menu, Music2, Search, X } from "lucide-react";
 import { NavLink } from "react-router";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
@@ -28,10 +47,12 @@ export default function Sidebar() {
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          className="rounded-lg p-2 text-secondary-text transition-colors hover:bg-surface-hover hover:text-primary-text cursor-pointer"
+          className="cursor-pointer rounded-lg p-2 text-secondary-text transition-colors hover:bg-surface-hover hover:text-primary-text"
           aria-label={isOpen ? "Close menu" : "Open menu"}
+          aria-expanded={isOpen}
+          aria-controls="mobile-sidebar"
         >
-          <Menu size={24} />
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </header>
 
@@ -45,6 +66,8 @@ export default function Sidebar() {
       )}
 
       <aside
+        id="mobile-sidebar"
+        inert={!isOpen ? true : undefined}
         className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border bg-surface p-5 transition-transform duration-200 md:static md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
