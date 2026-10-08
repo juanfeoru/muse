@@ -23,8 +23,11 @@ import {
 import type { ArtistDetail } from "../types/artist";
 import type { Album, Track } from "../types";
 import { useFavoritesContext } from "../context/useFavoritesContext";
+import { useState } from "react";
 
 export default function ArtistDetail() {
+  const [imageError, setImageError] = useState(false);
+
   const { identifier } = useParams<{ identifier: string }>();
 
   const decodedIdentifier = identifier
@@ -124,10 +127,13 @@ export default function ArtistDetail() {
       <section className="mt-8 overflow-hidden rounded-2xl border border-border bg-surface">
         <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:p-8">
           <div className="mx-auto size-40 shrink-0 overflow-hidden rounded-full bg-surface-hover sm:mx-0 sm:size-44 lg:size-56">
-            {artist.image ? (
+            {artist.image && !imageError ? (
               <img
                 src={artist.image}
                 alt={artist.name}
+                loading="lazy"
+                decoding="async"
+                onError={() => setImageError(true)}
                 className="size-full object-cover"
               />
             ) : (

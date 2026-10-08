@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import type { Album } from "../../types";
+import { useState } from "react";
 
 interface AlbumCardProps {
   album: Album;
@@ -12,13 +13,18 @@ export default function AlbumCard({
   isFavorite,
   onFavorite,
 }: AlbumCardProps) {
+  const [imageError, setImageError] = useState(false);
+
   return (
     <article className="group min-w-40">
       <div className="relative aspect-square overflow-hidden rounded-xl bg-surface-hover">
-        {album.image ? (
+        {album.image && !imageError ? (
           <img
             src={album.image}
             alt={`${album.title} by ${album.artist}`}
+            loading="lazy"
+            decoding="async"
+            onError={() => setImageError(true)}
             className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
@@ -26,7 +32,6 @@ export default function AlbumCard({
             <span className="text-3xl">♪</span>
           </div>
         )}
-
         <button
           type="button"
           onClick={onFavorite}

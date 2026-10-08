@@ -1,6 +1,7 @@
 import { Heart } from "lucide-react";
 import type { Artist } from "../../types";
 import { Link } from "react-router";
+import { useState } from "react";
 
 interface ArtistCardProps {
   artist: Artist;
@@ -13,6 +14,8 @@ export default function ArtistCard({
   isFavorite,
   onFavorite,
 }: ArtistCardProps) {
+  const [imageError, setImageError] = useState(false);
+
   return (
     <article className="group min-w-32">
       <div className="relative aspect-square overflow-hidden rounded-full bg-surface-hover">
@@ -20,10 +23,13 @@ export default function ArtistCard({
           to={`/artist/${encodeURIComponent(artist.name)}`}
           aria-label={`View ${artist.name}`}
         >
-          {artist.image ? (
+          {artist.image && !imageError ? (
             <img
               src={artist.image}
               alt={artist.name}
+              loading="lazy"
+              decoding="async"
+              onError={() => setImageError(true)}
               className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
