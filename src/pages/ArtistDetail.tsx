@@ -86,7 +86,7 @@ export default function ArtistDetail() {
     return <LoadingState message="Loading artist..." />;
   }
 
-  if (artistError || !artist) {
+  if (!artist) {
     return (
       <section className="px-5 py-6 md:px-8 md:py-8">
         <button
@@ -99,12 +99,15 @@ export default function ArtistDetail() {
         </button>
 
         <div className="mt-8">
-          <ErrorState message="Failed to fetch artist info" />
+          {artistError ? (
+            <ErrorState message="Failed to fetch artist info" />
+          ) : (
+            <ErrorState message="Artist not found" />
+          )}
         </div>
       </section>
     );
   }
-
   const isFavorite = favoriteArtistIds.has(artist.id);
 
   return (
@@ -225,7 +228,7 @@ export default function ArtistDetail() {
           )}
 
           {!isLoadingTracks && !tracksError && (
-            <div className="overflow-hidden rounded-xl border border-border bg-surface">
+            <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
               {tracks.map((track, index) => (
                 <TrackItem
                   key={track.id}
