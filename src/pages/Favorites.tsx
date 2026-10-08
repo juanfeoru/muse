@@ -3,6 +3,7 @@ import AlbumCard from "../components/ui/AlbumCard";
 import EmptyState from "../components/ui/EmptyState";
 import TrackItem from "../components/ui/TrackItem";
 import { useFavoritesContext } from "../context/useFavoritesContext";
+import { Heart } from "lucide-react";
 
 export default function Favorites() {
   const { favorites, toggleFavorite } = useFavoritesContext();
@@ -40,7 +41,11 @@ export default function Favorites() {
             </div>
           ) : (
             <div className="mt-5">
-              <EmptyState title="You don't have any favorite artists yet" />
+              <EmptyState
+                title="No favorite artists"
+                description="Artists you favorite will appear here."
+                icon={Heart}
+              />
             </div>
           )}
         </section>
@@ -61,7 +66,11 @@ export default function Favorites() {
             </div>
           ) : (
             <div className="mt-5">
-              <EmptyState title="You don't have any favorite albums yet" />
+              <EmptyState
+                title="No favorite albums"
+                description="Albums you favorite will appear here."
+                icon={Heart}
+              />
             </div>
           )}
         </section>
@@ -83,7 +92,11 @@ export default function Favorites() {
             </div>
           ) : (
             <div className="mt-5">
-              <EmptyState title="You don't have any favorite tracks yet" />
+              <EmptyState
+                title="No favorite tracks"
+                description="Tracks you favorite will appear here."
+                icon={Heart}
+              />
             </div>
           )}
         </section>
