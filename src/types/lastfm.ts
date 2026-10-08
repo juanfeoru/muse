@@ -203,3 +203,26 @@ export interface LastFmTopAlbumsResponse {
     album: LastFmTopAlbum[];
   };
 }
+
+export interface LastFmTopTagsResponse {
+  toptags: {
+    tag: Array<{
+      name: string;
+      count: number;
+      reach: number;
+    }>;
+  };
+}
+
+export interface LastFmTopTag {
+  name: string;
+  count: number;
+  reach: number;
+}
+
+export interface LastFmTopArtistsResponse {
+  topartists: {
+    "@attr": LastFmPagination;
+    artist: LastFmArtist[];
+  };
+}

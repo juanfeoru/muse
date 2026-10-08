@@ -6,6 +6,7 @@ import type {
   LastFmChartTrack,
   LastFmImage,
   LastFmTopAlbum,
+  LastFmTopTag,
   LastFmTopTrack,
   LastFmTrack,
 } from "../types/lastfm";
@@ -102,4 +103,8 @@ export function mapLastFmTopAlbum(album: LastFmTopAlbum): Album {
     artist: album.artist.name,
     image: pickImage(album.image) || "",
   };
+}
+
+export function mapLastFmTopTag(tag: LastFmTopTag): string {
+  return tag.name;
 }

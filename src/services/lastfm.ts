@@ -6,6 +6,7 @@ import type {
   LastFmGetArtistInfoResponse,
   LastFmTopAlbumsResponse,
   LastFmTopArtistsResponse,
+  LastFmTopTagsResponse,
   LastFmTopTracksResponse,
   LastFmTrackSearchResponse,
 } from "../types/lastfm";
@@ -196,4 +197,39 @@ export async function getTopAlbums(tag: string, signal?: AbortSignal) {
   );
 
   return data.albums.album;
+}
+
+export async function getTopArtistsByTag(tag: string, signal?: AbortSignal) {
+  const data = await request<LastFmTopArtistsResponse>(
+    {
+      method: "tag.gettopartists",
+      tag,
+    },
+    signal,
+  );
+
+  return data.topartists.artist;
+}
+
+export async function getTopAlbumsByTag(tag: string, signal?: AbortSignal) {
+  const data = await request<LastFmTopAlbumsResponse>(
+    {
+      method: "tag.gettopalbums",
+      tag,
+    },
+    signal,
+  );
+
+  return data.albums.album;
+}
+
+export async function getTopTags(signal?: AbortSignal) {
+  const data = await request<LastFmTopTagsResponse>(
+    {
+      method: "tag.gettoptags",
+    },
+    signal,
+  );
+
+  return data.toptags.tag;
 }
