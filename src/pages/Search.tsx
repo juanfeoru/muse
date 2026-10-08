@@ -1,6 +1,6 @@
-import { Search as SearchIcon } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { Search as SearchIcon, X } from "lucide-react";
+import { keepPreviousData, useQueries } from "@tanstack/react-query";
+import { useSearchParams } from "react-router";
 
 import ArtistCard from "../components/ui/ArtistCard";
 import AlbumCard from "../components/ui/AlbumCard";
@@ -19,20 +19,7 @@ import {
 
 import type { Album, Artist, Track } from "../types";
 import { useFavoritesContext } from "../context/useFavoritesContext";
-
-function useDebounce<T>(value: T, delay: number) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => clearTimeout(timeoutId);
-  }, [value, delay]);
-
-  return debouncedValue;
-}
+import { useDebouncedValue } from "../hooks/useDebouncedValue";
 
 export default function Search() {
   const {
@@ -42,56 +29,71 @@ export default function Search() {
     toggleFavorite,
   } = useFavoritesContext();
 
-  const [query, setQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const debouncedQuery = useDebounce(query.trim(), 500);
+  const query = searchParams.get("q") ?? "";
+  const debouncedQuery = useDebouncedValue(query.trim(), 500);
 
-  const {
-    data: artists = [],
-    isLoading: isLoadingArtists,
-    error: artistsError,
-  } = useQuery<Artist[]>({
-    queryKey: ["search", "artists", debouncedQuery],
-    queryFn: async ({ signal }) => {
-      const artists = await searchArtists(debouncedQuery, signal);
+  const handleQueryChange = (value: string) => {
+    if (value.trim()) {
+      setSearchParams({ q: value }, { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
+  };
 
-      return artists
-        .map(mapLastFmArtist)
-        .sort((a, b) => b.listeners - a.listeners);
-    },
-    enabled: debouncedQuery.length > 0,
+  const clearSearch = () => {
+    setSearchParams({}, { replace: true });
+  };
+
+  const results = useQueries({
+    queries: [
+      {
+        queryKey: ["search", "artists", debouncedQuery],
+        queryFn: async ({ signal }) => {
+          const artists = await searchArtists(debouncedQuery, signal);
+
+          return artists
+            .map(mapLastFmArtist)
+            .sort((a, b) => b.listeners - a.listeners);
+        },
+        enabled: debouncedQuery.length > 0,
+        placeholderData: keepPreviousData,
+      },
+      {
+        queryKey: ["search", "albums", debouncedQuery],
+        queryFn: async ({ signal }) => {
+          const albums = await searchAlbums(debouncedQuery, signal);
+
+          return albums.map(mapLastFmAlbum);
+        },
+        enabled: debouncedQuery.length > 0,
+        placeholderData: keepPreviousData,
+      },
+      {
+        queryKey: ["search", "tracks", debouncedQuery],
+        queryFn: async ({ signal }) => {
+          const tracks = await searchTracks(debouncedQuery, signal);
+
+          return tracks
+            .map(mapLastFmTrack)
+            .sort((a, b) => b.listeners - a.listeners)
+            .slice(0, 10);
+        },
+        enabled: debouncedQuery.length > 0,
+        placeholderData: keepPreviousData,
+      },
+    ],
   });
 
-  const {
-    data: albums = [],
-    isLoading: isLoadingAlbums,
-    error: albumsError,
-  } = useQuery<Album[]>({
-    queryKey: ["search", "albums", debouncedQuery],
-    queryFn: async ({ signal }) => {
-      const albums = await searchAlbums(debouncedQuery, signal);
+  const [artistsQuery, albumsQuery, tracksQuery] = results;
 
-      return albums.map(mapLastFmAlbum);
-    },
-    enabled: debouncedQuery.length > 0,
-  });
+  const artists = (artistsQuery.data ?? []) as Artist[];
+  const albums = (albumsQuery.data ?? []) as Album[];
+  const tracks = (tracksQuery.data ?? []) as Track[];
 
-  const {
-    data: tracks = [],
-    isLoading: isLoadingTracks,
-    error: tracksError,
-  } = useQuery<Track[]>({
-    queryKey: ["search", "tracks", debouncedQuery],
-    queryFn: async ({ signal }) => {
-      const tracks = await searchTracks(debouncedQuery, signal);
-
-      return tracks
-        .map(mapLastFmTrack)
-        .sort((a, b) => b.listeners - a.listeners)
-        .slice(0, 10);
-    },
-    enabled: debouncedQuery.length > 0,
-  });
+  const isSearching =
+    artistsQuery.isFetching || albumsQuery.isFetching || tracksQuery.isFetching;
 
   return (
     <section className="px-5 py-6 md:px-8 md:py-8">
@@ -116,15 +118,26 @@ export default function Search() {
         />
 
         <input
-          type="search"
+          type="text"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => handleQueryChange(event.target.value)}
           placeholder="Search for an artist, album or track..."
-          className="w-full rounded-xl border border-border bg-surface py-3 pl-11 pr-4 text-primary-text outline-none placeholder:text-muted-text focus:border-accent"
+          className="w-full rounded-xl border border-border bg-surface py-3 pl-11 pr-11 text-primary-text outline-none placeholder:text-muted-text focus:border-accent"
         />
+
+        {query && (
+          <button
+            type="button"
+            onClick={clearSearch}
+            aria-label="Clear search"
+            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-md p-1 text-muted-text transition-colors hover:text-primary-text"
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
 
-      <div className="mt-10">
+      <div className="mt-10" aria-live="polite">
         {!query.trim() ? (
           <p className="text-secondary-text">
             Start typing to search for music.
@@ -136,9 +149,9 @@ export default function Search() {
                 Artists
               </h2>
 
-              {isLoadingArtists ? (
+              {artistsQuery.isLoading ? (
                 <LoadingState message="Searching artists..." />
-              ) : artistsError ? (
+              ) : artistsQuery.error ? (
                 <ErrorState message="Failed to search artists" />
               ) : artists.length > 0 ? (
                 <div className="scrollbar-dark mt-5 flex gap-6 overflow-x-auto pb-2">
@@ -166,9 +179,9 @@ export default function Search() {
                 Albums
               </h2>
 
-              {isLoadingAlbums ? (
+              {albumsQuery.isLoading ? (
                 <LoadingState message="Searching albums..." />
-              ) : albumsError ? (
+              ) : albumsQuery.error ? (
                 <ErrorState message="Failed to search albums" />
               ) : albums.length > 0 ? (
                 <div className="scrollbar-dark mt-5 flex gap-5 overflow-x-auto pb-2">
@@ -196,9 +209,9 @@ export default function Search() {
                 Tracks
               </h2>
 
-              {isLoadingTracks ? (
+              {tracksQuery.isLoading ? (
                 <LoadingState message="Searching tracks..." />
-              ) : tracksError ? (
+              ) : tracksQuery.error ? (
                 <ErrorState message="Failed to search tracks" />
               ) : tracks.length > 0 ? (
                 <div className="mt-5 divide-y divide-border rounded-xl border border-border">
@@ -221,6 +234,10 @@ export default function Search() {
                 </div>
               )}
             </section>
+
+            {isSearching && (
+              <p className="text-sm text-secondary-text">Updating results...</p>
+            )}
           </div>
         )}
       </div>

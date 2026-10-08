@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import ArtistCard from "../components/ui/ArtistCard";
 import SectionHeader from "../components/ui/SectionHeader";
@@ -19,6 +19,7 @@ import {
   mapLastFmTopAlbum,
 } from "../services/mappers";
 import { useFavoritesContext } from "../context/useFavoritesContext";
+import { Link } from "react-router";
 
 export default function Home() {
   const {
@@ -53,6 +54,7 @@ export default function Home() {
 
       return albums.map(mapLastFmTopAlbum).slice(0, 15);
     },
+    placeholderData: keepPreviousData,
   });
 
   const {
@@ -84,20 +86,20 @@ export default function Home() {
             Explore artists, albums and tracks from every corner of music.
           </p>
 
-          <button
-            type="button"
-            className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-accent px-4 py-2.5 font-medium text-background transition-colors hover:bg-accent-hover"
+          <Link
+            to="/discover"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 font-medium text-background transition-colors hover:bg-accent-hover"
           >
             Explore music
             <ArrowRight size={18} />
-          </button>
+          </Link>
         </div>
 
         <div className="absolute -right-20 -top-20 size-64 rounded-full bg-accent/10 blur-3xl" />
       </div>
 
       <section className="mt-10">
-        <SectionHeader title="Popular Artists" action="See all" />
+        <SectionHeader title="Popular Artists" action="See all" to="/search" />
 
         <div className="mt-5">
           {isLoadingArtists && <LoadingState message="Loading artists..." />}
@@ -120,7 +122,7 @@ export default function Home() {
       </section>
 
       <section className="mt-12">
-        <SectionHeader title="Popular Albums" action="See all" />
+        <SectionHeader title="Popular Albums" action="See all" to="/discover" />
 
         <div className="mt-5">
           <div className="scrollbar-dark flex gap-2 overflow-x-auto pb-2">
@@ -164,7 +166,7 @@ export default function Home() {
       </section>
 
       <section className="mt-12">
-        <SectionHeader title="Popular Tracks" action="See all" />
+        <SectionHeader title="Popular Tracks" action="See all" to="/search" />
 
         <div className="mt-5">
           {isLoadingTracks && <LoadingState message="Loading tracks..." />}
