@@ -13,171 +13,187 @@ import type {
 const BASE_URL = "https://ws.audioscrobbler.com/2.0";
 const API_KEY = import.meta.env.VITE_LASTFM_API_KEY;
 
-export async function searchArtists(query: string) {
-  const url = new URL(BASE_URL);
+interface LastFmErrorResponse {
+  error: number;
+  message: string;
+}
 
-  url.searchParams.set("method", "artist.search");
-  url.searchParams.set("artist", query);
-  url.searchParams.set("api_key", API_KEY);
-  url.searchParams.set("format", "json");
+export class LastFmApiError extends Error {
+  status?: number;
+  code?: number;
 
-  const response = await fetch(url);
+  constructor(message: string, status?: number, code?: number) {
+    super(message);
+    this.name = "LastFmApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch artists");
+async function request<T>(
+  params: Record<string, string>,
+  signal?: AbortSignal,
+): Promise<T> {
+  if (!API_KEY) {
+    throw new LastFmApiError("Last.fm API key is missing");
   }
 
-  const data: LastFmArtistSearchResponse = await response.json();
+  const url = new URL(BASE_URL);
+
+  Object.entries({
+    ...params,
+    api_key: API_KEY,
+    format: "json",
+  }).forEach(([key, value]) => {
+    url.searchParams.set(key, value);
+  });
+
+  const response = await fetch(url, { signal });
+
+  let data: T | LastFmErrorResponse;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new LastFmApiError(
+      `Last.fm returned an invalid response (${response.status})`,
+      response.status,
+    );
+  }
+
+  if (!response.ok) {
+    throw new LastFmApiError(
+      `Last.fm request failed (${response.status})`,
+      response.status,
+    );
+  }
+
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "error" in data &&
+    "message" in data
+  ) {
+    const errorData = data as LastFmErrorResponse;
+
+    throw new LastFmApiError(
+      errorData.message,
+      response.status,
+      errorData.error,
+    );
+  }
+
+  return data as T;
+}
+
+export async function searchArtists(query: string, signal?: AbortSignal) {
+  const data = await request<LastFmArtistSearchResponse>(
+    {
+      method: "artist.search",
+      artist: query,
+    },
+    signal,
+  );
 
   return data.results.artistmatches.artist;
 }
 
-export async function searchAlbums(query: string) {
-  const url = new URL(BASE_URL);
-
-  url.searchParams.set("method", "album.search");
-  url.searchParams.set("album", query);
-  url.searchParams.set("api_key", API_KEY);
-  url.searchParams.set("format", "json");
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch albums");
-  }
-
-  const data: LastFmAlbumSearchResponse = await response.json();
+export async function searchAlbums(query: string, signal?: AbortSignal) {
+  const data = await request<LastFmAlbumSearchResponse>(
+    {
+      method: "album.search",
+      album: query,
+    },
+    signal,
+  );
 
   return data.results.albummatches.album;
 }
 
-export async function searchTracks(query: string) {
-  const url = new URL(BASE_URL);
-
-  url.searchParams.set("method", "track.search");
-  url.searchParams.set("track", query);
-  url.searchParams.set("api_key", API_KEY);
-  url.searchParams.set("format", "json");
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch tracks");
-  }
-
-  const data: LastFmTrackSearchResponse = await response.json();
+export async function searchTracks(query: string, signal?: AbortSignal) {
+  const data = await request<LastFmTrackSearchResponse>(
+    {
+      method: "track.search",
+      track: query,
+    },
+    signal,
+  );
 
   return data.results.trackmatches.track;
 }
 
-export async function getArtistInfo(identifier: string) {
-  const url = new URL(BASE_URL);
-
-  url.searchParams.set("method", "artist.getInfo");
-  url.searchParams.set("artist", identifier);
-  url.searchParams.set("api_key", API_KEY);
-  url.searchParams.set("format", "json");
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch artist info");
-  }
-
-  const data: LastFmGetArtistInfoResponse = await response.json();
+export async function getArtistInfo(identifier: string, signal?: AbortSignal) {
+  const data = await request<LastFmGetArtistInfoResponse>(
+    {
+      method: "artist.getInfo",
+      artist: identifier,
+    },
+    signal,
+  );
 
   return data.artist;
 }
 
-export async function getArtistTopTracks(identifier: string) {
-  const url = new URL(BASE_URL);
-
-  url.searchParams.set("method", "artist.gettoptracks");
-  url.searchParams.set("artist", identifier);
-  url.searchParams.set("api_key", API_KEY);
-  url.searchParams.set("format", "json");
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch artist top tracks");
-  }
-
-  const data: LastFmArtistTopTracksResponse = await response.json();
+export async function getArtistTopTracks(
+  identifier: string,
+  signal?: AbortSignal,
+) {
+  const data = await request<LastFmArtistTopTracksResponse>(
+    {
+      method: "artist.gettoptracks",
+      artist: identifier,
+    },
+    signal,
+  );
 
   return data.toptracks.track;
 }
 
-export async function getArtistTopAlbums(identifier: string) {
-  const url = new URL(BASE_URL);
-
-  url.searchParams.set("method", "artist.gettopalbums");
-  url.searchParams.set("artist", identifier);
-  url.searchParams.set("api_key", API_KEY);
-  url.searchParams.set("format", "json");
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch artist top albums");
-  }
-
-  const data: LastFmArtistTopAlbumsResponse = await response.json();
+export async function getArtistTopAlbums(
+  identifier: string,
+  signal?: AbortSignal,
+) {
+  const data = await request<LastFmArtistTopAlbumsResponse>(
+    {
+      method: "artist.gettopalbums",
+      artist: identifier,
+    },
+    signal,
+  );
 
   return data.topalbums.album;
 }
 
-export async function getTopArtists() {
-  const url = new URL(BASE_URL);
-
-  url.searchParams.set("method", "chart.gettopartists");
-  url.searchParams.set("api_key", API_KEY);
-  url.searchParams.set("format", "json");
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch top artists");
-  }
-
-  const data: LastFmTopArtistsResponse = await response.json();
+export async function getTopArtists(signal?: AbortSignal) {
+  const data = await request<LastFmTopArtistsResponse>(
+    {
+      method: "chart.gettopartists",
+    },
+    signal,
+  );
 
   return data.artists.artist;
 }
 
-export async function getTopTracks() {
-  const url = new URL(BASE_URL);
-
-  url.searchParams.set("method", "chart.gettoptracks");
-  url.searchParams.set("api_key", API_KEY);
-  url.searchParams.set("format", "json");
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch top tracks");
-  }
-
-  const data: LastFmTopTracksResponse = await response.json();
+export async function getTopTracks(signal?: AbortSignal) {
+  const data = await request<LastFmTopTracksResponse>(
+    {
+      method: "chart.gettoptracks",
+    },
+    signal,
+  );
 
   return data.tracks.track;
 }
 
-export async function getTopAlbums(tag: string) {
-  const url = new URL(BASE_URL);
-
-  url.searchParams.set("method", "tag.getTopAlbums");
-  url.searchParams.set("tag", tag);
-  url.searchParams.set("api_key", API_KEY);
-  url.searchParams.set("format", "json");
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch top albums");
-  }
-
-  const data: LastFmTopAlbumsResponse = await response.json();
+export async function getTopAlbums(tag: string, signal?: AbortSignal) {
+  const data = await request<LastFmTopAlbumsResponse>(
+    {
+      method: "tag.getTopAlbums",
+      tag,
+    },
+    signal,
+  );
 
   return data.albums.album;
 }
