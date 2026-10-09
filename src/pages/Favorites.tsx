@@ -29,13 +29,14 @@ export default function Favorites() {
           <h2 className="text-xl font-semibold text-primary-text">Artists</h2>
 
           {favorites.artists.length > 0 ? (
-            <div className="mt-5 flex gap-6 overflow-x-auto pb-2">
+            <div className="mt-5 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
               {favorites.artists.map((artist) => (
                 <ArtistCard
                   key={artist.id}
                   artist={artist}
                   isFavorite={true}
                   onFavorite={() => toggleFavorite(artist, "artists")}
+                  layout="grid"
                 />
               ))}
             </div>
@@ -54,13 +55,14 @@ export default function Favorites() {
           <h2 className="text-xl font-semibold text-primary-text">Albums</h2>
 
           {favorites.albums.length > 0 ? (
-            <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-5 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
               {favorites.albums.map((album) => (
                 <AlbumCard
                   key={album.id}
                   album={album}
                   isFavorite={true}
                   onFavorite={() => toggleFavorite(album, "albums")}
+                  layout="grid"
                 />
               ))}
             </div>
