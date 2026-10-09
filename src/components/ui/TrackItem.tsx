@@ -15,8 +15,8 @@ export default function TrackItem({
   onFavorite,
 }: TrackItemProps) {
   return (
-    <div className="group flex items-center gap-4 rounded-xl px-3 py-3 transition-colors hover:bg-surface-hover">
-      <span className="w-5 text-center text-sm text-muted-text">
+    <div className="group flex min-w-0 items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-surface-hover sm:gap-4">
+      <span className="w-5 shrink-0 text-center text-sm tabular-nums text-muted-text">
         {position}
       </span>
 
