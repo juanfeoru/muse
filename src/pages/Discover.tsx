@@ -10,19 +10,12 @@ import { useFavoritesContext } from "../context/useFavoritesContext";
 
 import type { Artist, Album } from "../types";
 
-import {
-  getTopAlbumsByTag,
-  getTopArtistsByTag,
-  getTopTags,
-} from "../services/lastfm";
+import { getTopAlbumsByTag, getTopArtistsByTag } from "../services/lastfm";
 
-import {
-  mapLastFmArtist,
-  mapLastFmTopAlbum,
-  mapLastFmTopTag,
-} from "../services/mappers";
+import { mapLastFmArtist, mapLastFmTopAlbum } from "../services/mappers";
 import ScrollToTopButton from "../components/ui/ScrollToTopButton";
 import GenreChips from "../components/ui/GenreChips";
+import { useTopTags } from "../hooks/useTopTags";
 
 export default function Discover() {
   const [selectedGenre, setSelectedGenre] = useState<string>();
@@ -34,14 +27,7 @@ export default function Discover() {
     data: tags = [],
     isLoading: isLoadingTags,
     error: tagsError,
-  } = useQuery<string[]>({
-    queryKey: ["topTags"],
-    queryFn: async ({ signal }) => {
-      const tags = await getTopTags(signal);
-
-      return tags.map(mapLastFmTopTag).slice(0, 15);
-    },
-  });
+  } = useTopTags();
 
   const activeGenre = selectedGenre ?? tags[0];
 

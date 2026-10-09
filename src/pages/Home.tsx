@@ -22,6 +22,7 @@ import { useFavoritesContext } from "../context/useFavoritesContext";
 import { Link } from "react-router";
 import GenreChips from "../components/ui/GenreChips";
 import HorizontalCarousel from "../components/ui/HorizontalCarousel";
+import { useTopTags } from "../hooks/useTopTags";
 
 export default function Home() {
   const {
@@ -31,7 +32,17 @@ export default function Home() {
     toggleFavorite,
   } = useFavoritesContext();
 
-  const [selectedGenre, setSelectedGenre] = useState("pop");
+  const [selectedGenre, setSelectedGenre] = useState<string>();
+
+  const {
+    data: tags = [],
+    isLoading: isLoadingTags,
+    error: tagsError,
+  } = useTopTags();
+
+  const homeTags = tags.slice(0, 10);
+
+  const activeGenre = selectedGenre ?? tags[0];
 
   const {
     data: artists = [],
@@ -41,7 +52,7 @@ export default function Home() {
     queryKey: ["topArtists"],
     queryFn: async ({ signal }) => {
       const artists = await getTopArtists(signal);
-      return artists.map(mapLastFmArtist).slice(0, 15);
+      return artists.map(mapLastFmArtist).slice(0, 10);
     },
   });
 
@@ -52,9 +63,9 @@ export default function Home() {
   } = useQuery<Album[]>({
     queryKey: ["topAlbums", selectedGenre],
     queryFn: async ({ signal }) => {
-      const albums = await getTopAlbums(selectedGenre, signal);
+      const albums = await getTopAlbums(activeGenre, signal);
 
-      return albums.map(mapLastFmTopAlbum).slice(0, 15);
+      return albums.map(mapLastFmTopAlbum).slice(0, 10);
     },
     placeholderData: keepPreviousData,
   });
@@ -127,29 +138,41 @@ export default function Home() {
         <SectionHeader title="Popular Albums" action="See all" to="/discover" />
 
         <div className="mt-5">
-          <GenreChips
-            genres={["pop", "rock", "disco", "electronic", "hip-hop", "jazz"]}
-            selectedGenre={selectedGenre}
-            onSelect={setSelectedGenre}
-          />
+          {isLoadingTags && <LoadingState message="Loading tags..." />}
+
+          {tagsError && <ErrorState message="Failed to get top tags" />}
+
+          {!isLoadingTags && !tagsError && (
+            <GenreChips
+              genres={homeTags}
+              selectedGenre={activeGenre}
+              onSelect={setSelectedGenre}
+            />
+          )}
 
           <div className="mt-5">
             {isLoadingAlbums && <LoadingState message="Loading albums..." />}
 
             {albumsError && <ErrorState message="Failed to get top albums" />}
 
-            {!isLoadingAlbums && !albumsError && (
-              <HorizontalCarousel label="popular albums">
-                {albums.map((album) => (
-                  <AlbumCard
-                    key={album.id}
-                    album={album}
-                    isFavorite={favoriteAlbumIds.has(album.id)}
-                    onFavorite={() => toggleFavorite(album, "albums")}
-                  />
-                ))}
-              </HorizontalCarousel>
-            )}
+            {!isLoadingAlbums &&
+              !albumsError &&
+              (albums.length > 0 ? (
+                <HorizontalCarousel label="popular albums">
+                  {albums.map((album) => (
+                    <AlbumCard
+                      key={album.id}
+                      album={album}
+                      isFavorite={favoriteAlbumIds.has(album.id)}
+                      onFavorite={() => toggleFavorite(album, "albums")}
+                    />
+                  ))}
+                </HorizontalCarousel>
+              ) : (
+                <p className="rounded-xl border border-border bg-surface p-6 text-secondary-text">
+                  No albums found for this genre.
+                </p>
+              ))}
           </div>
         </div>
       </section>
