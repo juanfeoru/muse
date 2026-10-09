@@ -22,6 +22,7 @@ import {
   mapLastFmTopTag,
 } from "../services/mappers";
 import ScrollToTopButton from "../components/ui/ScrollToTopButton";
+import GenreChips from "../components/ui/GenreChips";
 
 export default function Discover() {
   const [selectedGenre, setSelectedGenre] = useState<string>();
@@ -92,26 +93,14 @@ export default function Discover() {
 
       <div className="mt-8">
         {isLoadingTags && <LoadingState message="Loading genres..." />}
-
         {tagsError && <ErrorState message="Failed to fetch genres" />}
-
-        {!isLoadingTags && !tagsError && (
-          <div className="scrollbar-dark flex gap-2 overflow-x-auto border-b border-border pb-4">
-            {tags.map((genre) => (
-              <button
-                key={genre}
-                type="button"
-                onClick={() => setSelectedGenre(genre)}
-                className={`shrink-0 cursor-pointer rounded-full px-4 py-2 text-sm font-medium capitalize transition-colors ${
-                  activeGenre === genre
-                    ? "bg-accent text-background"
-                    : "bg-surface text-secondary-text hover:bg-surface-hover hover:text-primary-text"
-                }`}
-              >
-                {genre}
-              </button>
-            ))}
-          </div>
+        {!isLoadingTags && !tagsError && tags.length > 0 && (
+          <GenreChips
+            genres={tags}
+            selectedGenre={activeGenre ?? ""}
+            onSelect={setSelectedGenre}
+            bordered
+          />
         )}
       </div>
 

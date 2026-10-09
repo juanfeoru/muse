@@ -20,6 +20,7 @@ import {
 } from "../services/mappers";
 import { useFavoritesContext } from "../context/useFavoritesContext";
 import { Link } from "react-router";
+import GenreChips from "../components/ui/GenreChips";
 
 export default function Home() {
   const {
@@ -130,29 +131,11 @@ export default function Home() {
         <SectionHeader title="Popular Albums" action="See all" to="/discover" />
 
         <div className="mt-5">
-          <div
-            role="region"
-            aria-label="Music genres"
-            tabIndex={0}
-            className="scrollbar-dark flex gap-2 overflow-x-auto pb-2"
-          >
-            {["pop", "rock", "disco", "electronic", "hip-hop", "jazz"].map(
-              (genre) => (
-                <button
-                  key={genre}
-                  type="button"
-                  className={`shrink-0 cursor-pointer rounded-full border px-4 py-2 text-sm font-medium capitalize transition-colors ${
-                    selectedGenre === genre
-                      ? "border-accent bg-accent text-background"
-                      : "border-border bg-surface text-secondary-text hover:border-accent/50 hover:text-primary-text"
-                  }`}
-                  onClick={() => setSelectedGenre(genre)}
-                >
-                  {genre}
-                </button>
-              ),
-            )}
-          </div>
+          <GenreChips
+            genres={["pop", "rock", "disco", "electronic", "hip-hop", "jazz"]}
+            selectedGenre={selectedGenre}
+            onSelect={setSelectedGenre}
+          />
           <div className="mt-5">
             {isLoadingAlbums && <LoadingState message="Loading albums..." />}
 
