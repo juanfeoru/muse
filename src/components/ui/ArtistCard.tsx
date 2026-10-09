@@ -7,17 +7,25 @@ interface ArtistCardProps {
   artist: Artist;
   isFavorite: boolean;
   onFavorite: () => void;
+  layout?: "carousel" | "grid";
 }
 
 export default function ArtistCard({
   artist,
   isFavorite,
   onFavorite,
+  layout,
 }: ArtistCardProps) {
   const [imageError, setImageError] = useState(false);
 
   return (
-    <article className="group min-w-32">
+    <article
+      className={`group ${
+        layout === "grid"
+          ? "w-full min-w-0"
+          : "w-28 shrink-0 snap-start sm:w-32"
+      }`}
+    >
       <div className="relative aspect-square overflow-hidden rounded-full bg-surface-hover">
         <Link
           to={`/artist/${encodeURIComponent(artist.name)}`}

@@ -21,6 +21,7 @@ import {
 import { useFavoritesContext } from "../context/useFavoritesContext";
 import { Link } from "react-router";
 import GenreChips from "../components/ui/GenreChips";
+import HorizontalCarousel from "../components/ui/HorizontalCarousel";
 
 export default function Home() {
   const {
@@ -108,12 +109,7 @@ export default function Home() {
           {artistsError && <ErrorState message="Failed to get top artists" />}
 
           {!isLoadingArtists && !artistsError && (
-            <div
-              role="region"
-              aria-label="Popular artists"
-              tabIndex={0}
-              className="scrollbar-dark flex gap-6 overflow-x-auto pb-2"
-            >
+            <HorizontalCarousel label="popular artists" className="gap-6">
               {artists.map((artist) => (
                 <ArtistCard
                   key={artist.id}
@@ -122,7 +118,7 @@ export default function Home() {
                   onFavorite={() => toggleFavorite(artist, "artists")}
                 />
               ))}
-            </div>
+            </HorizontalCarousel>
           )}
         </div>
       </section>
@@ -136,18 +132,14 @@ export default function Home() {
             selectedGenre={selectedGenre}
             onSelect={setSelectedGenre}
           />
+
           <div className="mt-5">
             {isLoadingAlbums && <LoadingState message="Loading albums..." />}
 
             {albumsError && <ErrorState message="Failed to get top albums" />}
 
             {!isLoadingAlbums && !albumsError && (
-              <div
-                role="region"
-                aria-label="Popular albums"
-                tabIndex={0}
-                className="scrollbar-dark flex gap-5 overflow-x-auto pb-2"
-              >
+              <HorizontalCarousel label="popular albums">
                 {albums.map((album) => (
                   <AlbumCard
                     key={album.id}
@@ -156,7 +148,7 @@ export default function Home() {
                     onFavorite={() => toggleFavorite(album, "albums")}
                   />
                 ))}
-              </div>
+              </HorizontalCarousel>
             )}
           </div>
         </div>

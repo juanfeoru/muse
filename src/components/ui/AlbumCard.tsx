@@ -6,17 +6,25 @@ interface AlbumCardProps {
   album: Album;
   isFavorite: boolean;
   onFavorite: () => void;
+  layout?: "carousel" | "grid";
 }
 
 export default function AlbumCard({
   album,
   isFavorite,
   onFavorite,
+  layout,
 }: AlbumCardProps) {
   const [imageError, setImageError] = useState(false);
 
   return (
-    <article className="group min-w-40">
+    <article
+      className={`group ${
+        layout === "grid"
+          ? "w-full min-w-0"
+          : "w-36 shrink-0 snap-start sm:w-40"
+      }`}
+    >
       <div className="relative aspect-square overflow-hidden rounded-xl bg-surface-hover">
         {album.image && !imageError ? (
           <img

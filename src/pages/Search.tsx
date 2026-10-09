@@ -20,6 +20,7 @@ import {
 import type { Album, Artist, Track } from "../types";
 import { useFavoritesContext } from "../context/useFavoritesContext";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
+import HorizontalCarousel from "../components/ui/HorizontalCarousel";
 
 export default function Search() {
   const {
@@ -154,7 +155,7 @@ export default function Search() {
               ) : artistsQuery.error ? (
                 <ErrorState message="Failed to search artists" />
               ) : artists.length > 0 ? (
-                <div className="scrollbar-dark mt-5 flex gap-6 overflow-x-auto pb-2">
+                <HorizontalCarousel label="search artists" className="gap-6">
                   {artists.map((artist) => (
                     <ArtistCard
                       key={artist.id}
@@ -163,7 +164,7 @@ export default function Search() {
                       onFavorite={() => toggleFavorite(artist, "artists")}
                     />
                   ))}
-                </div>
+                </HorizontalCarousel>
               ) : (
                 <div className="mt-5">
                   <EmptyState
@@ -184,7 +185,7 @@ export default function Search() {
               ) : albumsQuery.error ? (
                 <ErrorState message="Failed to search albums" />
               ) : albums.length > 0 ? (
-                <div className="scrollbar-dark mt-5 flex gap-5 overflow-x-auto pb-2">
+                <HorizontalCarousel label="search albums">
                   {albums.map((album) => (
                     <AlbumCard
                       key={album.id}
@@ -193,7 +194,7 @@ export default function Search() {
                       onFavorite={() => toggleFavorite(album, "albums")}
                     />
                   ))}
-                </div>
+                </HorizontalCarousel>
               ) : (
                 <div className="mt-5">
                   <EmptyState

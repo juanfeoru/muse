@@ -140,6 +140,7 @@ export default function Discover() {
                   artist={artist}
                   isFavorite={favoriteArtistIds.has(artist.id)}
                   onFavorite={() => toggleFavorite(artist, "artists")}
+                  layout="grid"
                 />
               ))}
             </div>
@@ -183,6 +184,7 @@ export default function Discover() {
                   album={album}
                   isFavorite={favoriteAlbumIds.has(album.id)}
                   onFavorite={() => toggleFavorite(album, "albums")}
+                  layout="grid"
                 />
               ))}
             </div>
