@@ -78,7 +78,7 @@ export default function Search() {
 
           return tracks
             .map(mapLastFmTrack)
-            .sort((a, b) => b.listeners - a.listeners)
+            .sort((a, b) => (b.listeners ?? 0) - (a.listeners ?? 0))
             .slice(0, 10);
         },
         enabled: debouncedQuery.length > 0,
