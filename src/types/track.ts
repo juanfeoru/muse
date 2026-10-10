@@ -3,5 +3,5 @@ export interface Track {
   title: string;
   artist: string;
   image?: string;
-  listeners: number;
+  listeners?: number;
 }

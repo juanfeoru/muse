@@ -226,3 +226,37 @@ export interface LastFmTopArtistsResponse {
     artist: LastFmArtist[];
   };
 }
+
+export interface LastFmAlbumTrack {
+  "@attr": LastFmRankAttributes;
+  artist: LastFmTopTrackArtist;
+  duration: number;
+  name: string;
+  streamable: {
+    fulltrack: string;
+    "#text": string;
+  };
+  url: string;
+}
+
+export interface LastFmAlbumWiki {
+  content: string;
+  published: string;
+  summary: string;
+}
+
+export interface LastFmAlbumInfo extends LastFmAlbum {
+  listeners: string;
+  playcount: string;
+  tags: {
+    tag: LastFmArtistTag[];
+  };
+  tracks: {
+    track: LastFmAlbumTrack[];
+  };
+  wiki: LastFmAlbumWiki;
+}
+
+export interface LastFmAlbumInfoResponse {
+  album: LastFmAlbumInfo;
+}

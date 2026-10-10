@@ -1,6 +1,8 @@
 import type { Album, Artist, ArtistDetail, Track } from "../types";
+import type { AlbumDetail, AlbumTrack } from "../types/album";
 import type {
   LastFmAlbum,
+  LastFmAlbumInfo,
   LastFmArtist,
   LastFmArtistInfo,
   LastFmChartTrack,
@@ -107,4 +109,31 @@ export function mapLastFmTopAlbum(album: LastFmTopAlbum): Album {
 
 export function mapLastFmTopTag(tag: LastFmTopTag): string {
   return tag.name;
+}
+
+export function mapLastFmAlbumInfo(
+  album: LastFmAlbumInfo,
+): AlbumDetail {
+  return {
+    id: album.mbid,
+    name: album.name,
+    artist: album.artist,
+    image: pickImage(album.image) || "",
+    summary: stripHtml(album.wiki?.summary ?? ""),
+    listeners: Number(album.listeners),
+    playcount: Number(album.playcount),
+
+    tags: (album.tags?.tag ?? []).map((tag) => tag.name),
+
+    tracks: (album.tracks?.track ?? []).map(
+      (track): AlbumTrack => ({
+        id: `${track.artist.name}-${track.name}`,
+        title: track.name,
+        duration: track.duration,
+        url: track.url,
+        rank: Number(track["@attr"]?.rank ?? 0),
+        artist: track.artist.name,
+      }),
+    ),
+  };
 }

@@ -1,4 +1,5 @@
 import type {
+  LastFmAlbumInfoResponse,
   LastFmAlbumSearchResponse,
   LastFmArtistSearchResponse,
   LastFmArtistTopAlbumsResponse,
@@ -232,4 +233,21 @@ export async function getTopTags(signal?: AbortSignal) {
   );
 
   return data.toptags.tag;
+}
+
+export async function getAlbumInfo(
+  artist: string,
+  album: string,
+  signal?: AbortSignal,
+) {
+  const data = await request<LastFmAlbumInfoResponse>(
+    {
+      method: "album.getinfo",
+      artist,
+      album,
+    },
+    signal,
+  );
+
+  return data.album;
 }
